@@ -1,0 +1,106 @@
+# Environment variables
+.env
+.env*.local
+.env.production
+.env.staging
+!.env.example
+.secrets
+
+# Dependencies
+node_modules/
+vendor/
+
+# Build outputs
+dist/
+build/
+.next/
+out/
+*.log
+
+# Testing
+coverage/
+*.coverage
+.nyc_output/
+*.test.js.snap
+coverage.out
+coverage.html
+test-results/
+playwright-report/
+playwright/.cache/
+__tests__/e2e/reports/
+reports/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# IDE
+.vscode/
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+*.sublime-workspace
+*.sublime-project
+.zed/
+
+# Go
+bin/
+*.exe
+*.test
+*.out
+tmp/
+apps/api/server
+
+# Next.js
+.vercel
+tsconfig.tsbuildinfo
+
+# Sentry Config File
+.env.sentry-build-plugin
+
+# Database
+*.db
+*.sqlite
+*.sql.bak
+pgdata/
+
+# Secrets
+*.pem
+*.key
+*.cert
+secrets/
+.secrets.baseline
+
+# Docker
+*.dockerignore.bak
+
+# Temp files
+temp/
+*.tmp
+
+# Backups
+*.backup
+*.bak
+*.old
+
+# Claude
+.claude/
+
+# Misc
+.cache/
+.parcel-cache/
+.turbo/
+
+# clerk configuration (can include secrets)
+/.clerk/
