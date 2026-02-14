@@ -1,5 +1,6 @@
 "use client";
 
+import posthog from "posthog-js";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Check } from "lucide-react";
@@ -44,7 +45,13 @@ export default function Pricing() {
   const { isSignedIn } = useAuth();
   const router = useRouter();
 
-  const handleGetStarted = () => {
+  const handleGetStarted = (planName: string, price: string) => {
+    posthog.capture("pricing_plan_clicked", {
+      plan_name: planName,
+      plan_price: price,
+      is_signed_in: isSignedIn,
+    });
+
     if (isSignedIn) {
       router.push("/pricing");
     } else {
@@ -110,7 +117,7 @@ export default function Pricing() {
               <Button
                 variant={plan.highlighted ? "default" : "outline"}
                 className="mt-8 w-full"
-                onClick={handleGetStarted}
+                onClick={() => handleGetStarted(plan.name, plan.price)}
               >
                 {plan.buttonText}
               </Button>

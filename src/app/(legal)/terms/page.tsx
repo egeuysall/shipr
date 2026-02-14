@@ -18,7 +18,7 @@ export default function TermsPage() {
         <section className="space-y-4">
           <h2 className="text-2xl font-semibold">Agreement to Terms</h2>
           <p>
-            By accessing or using Shipr ("the Service"), you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use the Service.
+            By accessing or using Shipr (&quot;the Service&quot;), you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use the Service.
           </p>
         </section>
 
@@ -78,7 +78,7 @@ export default function TermsPage() {
         <section className="space-y-4">
           <h2 className="text-2xl font-semibold">Disclaimer of Warranties</h2>
           <p>
-            The Service is provided "as is" and "as available" without warranties of any kind, either express or implied. We do not warrant that the Service will be uninterrupted, secure, or error-free.
+            The Service is provided &quot;as is&quot; and &quot;as available&quot; without warranties of any kind, either express or implied. We do not warrant that the Service will be uninterrupted, secure, or error-free.
           </p>
         </section>
 
@@ -92,7 +92,7 @@ export default function TermsPage() {
         <section className="space-y-4">
           <h2 className="text-2xl font-semibold">Changes to Terms</h2>
           <p>
-            We reserve the right to modify these Terms at any time. We will notify users of any material changes by posting the new Terms on this page and updating the "Last updated" date. Your continued use of the Service after changes constitutes acceptance of the modified Terms.
+            We reserve the right to modify these Terms at any time. We will notify users of any material changes by posting the new Terms on this page and updating the &quot;Last updated&quot; date. Your continued use of the Service after changes constitutes acceptance of the modified Terms.
           </p>
         </section>
 

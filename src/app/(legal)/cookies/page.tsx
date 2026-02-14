@@ -81,21 +81,21 @@ export default function CookiesPage() {
           <ul className="list-disc pl-6 space-y-2">
             <li>Adjust your browser settings to block or delete cookies</li>
             <li>Use browser extensions that manage cookie preferences</li>
-            <li>Clear cookies from your browser's settings menu</li>
+            <li>Clear cookies from your browser&apos;s settings menu</li>
           </ul>
         </section>
 
         <section className="space-y-4">
           <h2 className="text-2xl font-semibold">Do Not Track</h2>
           <p>
-            Some browsers have a "Do Not Track" feature that signals to websites that you do not want to have your online activity tracked. We currently do not respond to Do Not Track signals.
+            Some browsers have a &quot;Do Not Track&quot; feature that signals to websites that you do not want to have your online activity tracked. We currently do not respond to Do Not Track signals.
           </p>
         </section>
 
         <section className="space-y-4">
           <h2 className="text-2xl font-semibold">Updates to This Policy</h2>
           <p>
-            We may update this Cookie Policy from time to time to reflect changes in our practices or for legal reasons. We will notify you of any material changes by posting the updated policy on this page with a new "Last updated" date.
+            We may update this Cookie Policy from time to time to reflect changes in our practices or for legal reasons. We will notify you of any material changes by posting the updated policy on this page with a new &quot;Last updated&quot; date.
           </p>
         </section>
 

@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import posthog from "posthog-js";
 import { Logo } from "@/components/logo";
 import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -58,7 +59,13 @@ export const HeroHeader = () => {
               </Link>
 
               <button
-                onClick={() => setMenuState((prev) => !prev)}
+                onClick={() => {
+                  const newState = !menuState;
+                  setMenuState(newState);
+                  posthog.capture("mobile_menu_toggled", {
+                    action: newState ? "opened" : "closed",
+                  });
+                }}
                 aria-label={menuState ? "Close Menu" : "Open Menu"}
                 className="relative z-20 -m-2.5 -mr-4 block cursor-pointer p-2.5 lg:hidden"
               >
@@ -76,6 +83,13 @@ export const HeroHeader = () => {
                       size="sm"
                       render={<Link href={item.href} className="text-base" />}
                       nativeButton={false}
+                      onClick={() =>
+                        posthog.capture("navigation_clicked", {
+                          nav_item: item.name,
+                          nav_href: item.href,
+                          device_type: "desktop",
+                        })
+                      }
                     >
                       <span>{item.name}</span>
                     </Button>
@@ -91,7 +105,14 @@ export const HeroHeader = () => {
                     <li key={index}>
                       <Link
                         href={item.href}
-                        onClick={closeMenu}
+                        onClick={() => {
+                          closeMenu();
+                          posthog.capture("navigation_clicked", {
+                            nav_item: item.name,
+                            nav_href: item.href,
+                            device_type: "mobile",
+                          });
+                        }}
                         className="text-muted-foreground hover:text-accent-foreground block duration-150"
                       >
                         <span>{item.name}</span>

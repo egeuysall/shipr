@@ -1,21 +1,22 @@
 "use client";
 
-import { ConvexProvider, ConvexReactClient } from "convex/react";
-import { ReactNode, useMemo } from "react";
+import { ReactNode } from "react";
+import { ConvexReactClient } from "convex/react";
+import { ConvexProviderWithClerk } from "convex/react-clerk";
+import { useAuth } from "@clerk/nextjs";
 
-const CONVEX_URL = process.env.NEXT_PUBLIC_CONVEX_URL;
+if (!process.env.NEXT_PUBLIC_CONVEX_URL) {
+  throw new Error("Missing NEXT_PUBLIC_CONVEX_URL in your .env file");
+}
+
+// Module-level singleton -- only created once since NEXT_PUBLIC_CONVEX_URL
+// is a build-time constant that never changes.
+const convex = new ConvexReactClient(process.env.NEXT_PUBLIC_CONVEX_URL);
 
 export function ConvexClientProvider({ children }: { children: ReactNode }) {
-  const client = useMemo(() => {
-    if (!CONVEX_URL) return null;
-    return new ConvexReactClient(CONVEX_URL);
-  }, []);
-
-  if (!client) {
-    // Convex is not configured yet -- render children without the provider
-    // so the app can still function for non-Convex features.
-    return <>{children}</>;
-  }
-
-  return <ConvexProvider client={client}>{children}</ConvexProvider>;
+  return (
+    <ConvexProviderWithClerk client={convex} useAuth={useAuth}>
+      {children}
+    </ConvexProviderWithClerk>
+  );
 }

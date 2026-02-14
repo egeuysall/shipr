@@ -4,6 +4,7 @@ import { ConvexClientProvider } from "@/lib/convex-client-provider";
 import { ThemeProvider } from "@/components/theme-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/sonner";
+import { PostHogIdentify } from "@/components/posthog-identify";
 import { GeistSans } from "geist/font/sans";
 import { GeistMono } from "geist/font/mono";
 import { GeistPixelSquare } from "geist/font/pixel";
@@ -40,6 +41,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <ClerkProviderWrapper>
+            <PostHogIdentify />
             <TooltipProvider>
               <ConvexClientProvider>{children}</ConvexClientProvider>
             </TooltipProvider>

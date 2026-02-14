@@ -1,5 +1,6 @@
 "use client";
 
+import posthog from "posthog-js";
 import {
   Accordion,
   AccordionContent,
@@ -69,7 +70,15 @@ export default function FAQs() {
                   value={item.id}
                   className="border-dashed"
                 >
-                  <AccordionTrigger className="cursor-pointer py-4 text-sm font-medium hover:no-underline">
+                  <AccordionTrigger
+                    className="cursor-pointer py-4 text-sm font-medium hover:no-underline"
+                    onClick={() =>
+                      posthog.capture("faq_expanded", {
+                        faq_question: item.question,
+                        faq_id: item.id,
+                      })
+                    }
+                  >
                     {item.question}
                   </AccordionTrigger>
                   <AccordionContent>

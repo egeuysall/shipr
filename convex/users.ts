@@ -1,6 +1,21 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 
+// Delete user by Clerk ID (used by webhook on user.deleted)
+export const deleteUser = mutation({
+  args: { clerkId: v.string() },
+  handler: async (ctx, args) => {
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_clerk_id", (q) => q.eq("clerkId", args.clerkId))
+      .first();
+
+    if (user) {
+      await ctx.db.delete(user._id);
+    }
+  },
+});
+
 // Get user by Clerk ID
 export const getUserByClerkId = query({
   args: { clerkId: v.string() },

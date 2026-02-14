@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import posthog from "posthog-js";
 import { Button } from "@/components/ui/button";
 import { ChevronRight } from "lucide-react";
 
@@ -19,6 +22,12 @@ export default function CallToAction() {
               className="pr-1.5"
               render={<Link href="/sign-up" />}
               nativeButton={false}
+              onClick={() =>
+                posthog.capture("cta_clicked", {
+                  cta_text: "Get Started Free",
+                  location: "call_to_action_section",
+                })
+              }
             >
               <span>Get Started Free</span>
               <ChevronRight className="opacity-50" />
@@ -27,6 +36,12 @@ export default function CallToAction() {
               variant="secondary"
               render={<Link href="/pricing" />}
               nativeButton={false}
+              onClick={() =>
+                posthog.capture("cta_clicked", {
+                  cta_text: "View Pricing",
+                  location: "call_to_action_section",
+                })
+              }
             >
               View Pricing
             </Button>

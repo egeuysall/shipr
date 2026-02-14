@@ -1,5 +1,8 @@
+"use client";
+
 import React from "react";
 import Link from "next/link";
+import posthog from "posthog-js";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ChevronRight } from "lucide-react";
@@ -42,6 +45,12 @@ export default function HeroSection() {
               className="mt-6 pr-1.5"
               render={<Link href="/sign-up" />}
               nativeButton={false}
+              onClick={() =>
+                posthog.capture("cta_clicked", {
+                  cta_text: "Get Started Free",
+                  location: "hero_section",
+                })
+              }
             >
               <span className="text-nowrap">Get Started Free</span>
               <ChevronRight className="opacity-50" />
