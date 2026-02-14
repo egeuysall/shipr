@@ -97,6 +97,9 @@ temp/
 # Claude
 .claude/
 
+# Convex (auto-generated)
+convex/_generated/
+
 # Misc
 .cache/
 .parcel-cache/
