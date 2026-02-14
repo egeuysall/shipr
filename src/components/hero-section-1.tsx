@@ -2,7 +2,6 @@ import React from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { HeroHeader } from "./header";
 import { ChevronRight } from "lucide-react";
 import { Supabase } from "@/components/ui/svgs/supabase";
 import { Slack } from "@/components/ui/svgs/slack";
@@ -17,11 +16,8 @@ import Image from "next/image";
 
 export default function HeroSection() {
   return (
-    <>
-      <HeroHeader />
-      <main className="overflow-hidden">
-        <section className="bg-background">
-          <div className="relative py-32 md:pt-44">
+    <section className="overflow-hidden bg-background">
+      <div className="relative py-32 md:pt-44">
             <div className="mask-radial-from-50% mask-radial-to-85% mask-radial-at-top mask-radial-[75%_100%] mask-t-from-50% lg:aspect-9/4 absolute inset-0 aspect-square lg:top-24 dark:opacity-5">
               <Image
                 src="https://images.unsplash.com/photo-1740516367177-ae20098c8786?q=80&w=2268&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
@@ -44,10 +40,10 @@ export default function HeroSection() {
 
                 <Button
                   className="mt-6 pr-1.5"
-                  render={<Link href="#link" />}
+                  render={<Link href="/sign-up" />}
                   nativeButton={false}
                 >
-                  <span className="text-nowrap">Start Building</span>
+                  <span className="text-nowrap">Get Started Free</span>
                   <ChevronRight className="opacity-50" />
                 </Button>
               </div>
@@ -148,7 +144,5 @@ export default function HeroSection() {
             </div>
           </div>
         </section>
-      </main>
-    </>
   );
 }

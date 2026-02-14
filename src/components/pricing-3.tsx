@@ -31,7 +31,7 @@ export default function Pricing() {
     <section className="bg-background @container py-24">
       <div className="mx-auto max-w-2xl px-6">
         <div className="text-center">
-          <h2 className="text-balance font-serif text-4xl font-medium">
+          <h2 className="text-balance text-4xl font-bold">
             One Plan, Simple Pricing
           </h2>
           <p className="text-muted-foreground mx-auto mt-4 max-w-md text-balance">
@@ -55,7 +55,7 @@ export default function Pricing() {
                 </p>
               </div>
               <div>
-                <span className="font-serif text-5xl font-medium">
+                <span className="text-5xl font-bold">
                   {plan.price}
                 </span>
                 <span className="text-muted-foreground">{plan.period}</span>
@@ -74,7 +74,7 @@ export default function Pricing() {
               <Button
                 variant={plan.highlighted ? "default" : "outline"}
                 className="mt-8 w-full gap-2"
-                render={<Link href="#link" />}
+                render={<Link href="/pricing" />}
                 nativeButton={false}
               >
                 Get Started

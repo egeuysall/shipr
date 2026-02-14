@@ -27,7 +27,7 @@ export default function Features() {
                     <div>
                         <h2 className="text-balance font-serif text-4xl font-medium">Powerful Features for Modern Teams</h2>
                         <p className="text-muted-foreground mb-6 mt-4 text-balance">Everything you need to build, connect, and scale your integrations effortlessly.</p>
-                        <Button variant="secondary" size="sm" className="gap-1 pr-1.5" render={<Link href="#" />} nativeButton={false}>Get started
+                        <Button variant="secondary" size="sm" className="gap-1 pr-1.5" render={<Link href="/sign-up" />} nativeButton={false}>Get started
                                                         <ChevronRight /></Button>
                     </div>
                     <div className="mt-16 *:w-full *:cursor-pointer">

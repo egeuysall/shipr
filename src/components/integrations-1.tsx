@@ -18,7 +18,7 @@ export default function Integrations() {
                 <div className="mx-auto mt-12 max-w-md text-balance text-center">
                     <h2 className="font-serif text-4xl font-medium">Connect Your Favorite Tools</h2>
                     <p className="text-muted-foreground mb-6 mt-4">Seamlessly integrate with the services you already use. Set up in minutes, not days.</p>
-                    <Button variant="secondary" size="sm" className="gap-1 pr-1.5" render={<Link href="#" />} nativeButton={false}>Learn more
+                    <Button variant="secondary" size="sm" className="gap-1 pr-1.5" render={<Link href="/features" />} nativeButton={false}>Learn more
                                                 <ChevronRight /></Button>
                 </div>
             </div>

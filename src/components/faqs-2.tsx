@@ -54,7 +54,7 @@ export default function FAQs() {
             <p className="text-muted-foreground @xl:block mt-6 hidden text-sm">
               Need more help?{" "}
               <Link
-                href="#"
+                href="/about"
                 className="text-primary font-medium hover:underline"
               >
                 Contact us
@@ -83,7 +83,7 @@ export default function FAQs() {
             <p className="text-muted-foreground @xl:hidden mt-6 text-sm">
               Need more help?{" "}
               <Link
-                href="#"
+                href="/about"
                 className="text-primary font-medium hover:underline"
               >
                 Contact us

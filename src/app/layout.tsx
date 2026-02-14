@@ -8,10 +8,7 @@ import { GeistSans } from "geist/font/sans";
 import { GeistMono } from "geist/font/mono";
 import { GeistPixelSquare } from "geist/font/pixel";
 import "./globals.css";
-import { Geist } from "next/font/google";
 import { cn } from "@/lib/utils";
-
-const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
 export const metadata: Metadata = {
   title: "Shipr",
@@ -26,10 +23,10 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={cn(GeistSans.variable, GeistMono.variable, GeistPixelSquare.variable, geist.variable)}
+      className={cn(GeistSans.variable, GeistMono.variable, GeistPixelSquare.variable)}
       suppressHydrationWarning
     >
-      <body className="antialiased font-sans">
+      <body className={cn("antialiased", GeistSans.className)}>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"

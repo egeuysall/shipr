@@ -1,14 +1,12 @@
-"use client";
-
 import HeroSection from "@/components/hero-section-1";
 import LogoCloud from "@/components/logo-cloud-2";
 import Features from "@/components/features-3";
 import Integrations from "@/components/integrations-1";
 import Stats from "@/components/stats-2";
 import Testimonials from "@/components/testimonials-3";
+import Pricing from "@/components/pricing-3";
 import FAQs from "@/components/faqs-2";
 import CallToAction from "@/components/call-to-action-1";
-import Pricing from "@/components/pricing-3";
 
 export default function LandingPage() {
   return (
