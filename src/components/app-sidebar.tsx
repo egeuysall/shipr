@@ -17,7 +17,7 @@ import {
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   DashboardSquare01Icon,
-  ChartRingIcon,
+  User03Icon,
   RocketIcon,
 } from "@hugeicons/core-free-icons";
 
@@ -33,7 +33,7 @@ const data = {
     {
       title: "Support",
       url: "mailto:hi@egeuysal.com",
-      icon: <HugeiconsIcon icon={ChartRingIcon} strokeWidth={2} />,
+      icon: <HugeiconsIcon icon={User03Icon} strokeWidth={2} />,
     },
   ],
 };

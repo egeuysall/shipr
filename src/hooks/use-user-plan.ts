@@ -1,6 +1,6 @@
 "use client";
 
-import { useUser } from "@clerk/nextjs";
+import { useAuth } from "@clerk/nextjs";
 
 export type Plan = "free" | "pro";
 
@@ -10,11 +10,11 @@ export function useUserPlan(): {
   isPro: boolean;
   isFree: boolean;
 } {
-  const { user, isLoaded } = useUser();
+  const { has, isLoaded } = useAuth();
 
-  const plan = (user?.publicMetadata?.plan as Plan) || "free";
-  const isPro = plan === "pro";
-  const isFree = plan === "free";
+  const isPro = isLoaded ? (has?.({ plan: "pro" }) ?? false) : false;
+  const isFree = !isPro;
+  const plan: Plan = isPro ? "pro" : "free";
 
   return {
     plan,

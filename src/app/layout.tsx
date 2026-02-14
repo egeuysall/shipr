@@ -1,10 +1,13 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { ClerkProviderWrapper } from "@/components/clerk-provider-wrapper";
 import { ConvexClientProvider } from "@/lib/convex-client-provider";
 import { ThemeProvider } from "@/components/theme-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/sonner";
+import { PostHogProvider } from "@/components/posthog-provider";
 import { PostHogIdentify } from "@/components/posthog-identify";
+import { PostHogPageview } from "@/components/posthog-pageview";
 import { GeistSans } from "geist/font/sans";
 import { GeistMono } from "geist/font/mono";
 import { GeistPixelSquare } from "geist/font/pixel";
@@ -40,12 +43,17 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <ClerkProviderWrapper>
-            <PostHogIdentify />
-            <TooltipProvider>
-              <ConvexClientProvider>{children}</ConvexClientProvider>
-            </TooltipProvider>
-          </ClerkProviderWrapper>
+          <PostHogProvider>
+            <ClerkProviderWrapper>
+              <PostHogIdentify />
+              <Suspense fallback={null}>
+                <PostHogPageview />
+              </Suspense>
+              <TooltipProvider>
+                <ConvexClientProvider>{children}</ConvexClientProvider>
+              </TooltipProvider>
+            </ClerkProviderWrapper>
+          </PostHogProvider>
           <Toaster />
         </ThemeProvider>
         <Analytics />
