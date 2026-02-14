@@ -1,5 +1,6 @@
 import { Card } from "@/components/ui/card";
-import { Shield } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { ShieldKeyIcon } from "@hugeicons/core-free-icons";
 import { Vercel } from "@/components/ui/svgs/vercel";
 import { Supabase } from "@/components/ui/svgs/supabase";
 import { Linear } from "@/components/ui/svgs/linear";
@@ -128,8 +129,16 @@ export default function Features() {
             </div>
 
             <div className="pointer-events-none relative -ml-7 flex size-44 items-center justify-center pt-5">
-              <Shield className="absolute inset-0 top-2.5 size-full stroke-[0.1px] opacity-15" />
-              <Shield className="size-32 stroke-[0.1px]" />
+              <HugeiconsIcon
+                icon={ShieldKeyIcon}
+                strokeWidth={0.1}
+                className="absolute inset-0 top-2.5 size-full opacity-15"
+              />
+              <HugeiconsIcon
+                icon={ShieldKeyIcon}
+                strokeWidth={0.1}
+                className="size-32"
+              />
             </div>
           </Card>
         </div>

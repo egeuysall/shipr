@@ -5,7 +5,8 @@ import Link from "next/link";
 import posthog from "posthog-js";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ChevronRight } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { ArrowRight01Icon } from "@hugeicons/core-free-icons";
 import { Supabase } from "@/components/ui/svgs/supabase";
 import { Slack } from "@/components/ui/svgs/slack";
 import { Twilio } from "@/components/ui/svgs/twilio";
@@ -53,7 +54,11 @@ export default function HeroSection() {
               }
             >
               <span className="text-nowrap">Get Started Free</span>
-              <ChevronRight className="opacity-50" />
+              <HugeiconsIcon
+                icon={ArrowRight01Icon}
+                strokeWidth={2}
+                className="opacity-50 size-4"
+              />
             </Button>
           </div>
           <div className="mx-auto mt-24 max-w-xl">

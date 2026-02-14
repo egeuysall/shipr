@@ -7,7 +7,7 @@ export default defineSchema({
     email: v.string(),
     name: v.optional(v.string()),
     imageUrl: v.optional(v.string()),
-    plan: v.optional(v.string()), // "free" | "pro" — synced from Clerk Billing via useSyncUser
+    plan: v.optional(v.string()), // "free" | "pro": synced from Clerk Billing via useSyncUser
     // NOTE: Do not add a manual createdAt field.
     // Convex automatically provides _creationTime on every document.
   }).index("by_clerk_id", ["clerkId"]),

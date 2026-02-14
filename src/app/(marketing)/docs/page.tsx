@@ -1,12 +1,18 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { ChevronRight } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { ArrowRight01Icon } from "@hugeicons/core-free-icons";
+import { PAGE_SEO, SITE_CONFIG } from "@/lib/constants";
+import { BreadcrumbJsonLd } from "@/lib/structured-data";
 
 export const metadata: Metadata = {
-  title: "Documentation - Shipr",
-  description:
-    "Learn how to get started with Shipr. Guides, API references, and integration tutorials.",
+  title: PAGE_SEO.docs.title,
+  description: PAGE_SEO.docs.description,
+  keywords: [...PAGE_SEO.docs.keywords],
+  alternates: {
+    canonical: `${SITE_CONFIG.url}/docs`,
+  },
 };
 
 const sections = [
@@ -36,10 +42,15 @@ const sections = [
   },
 ];
 
-// TODO: Replace with actual documentation content or link to external docs site (e.g., Mintlify, Docusaurus)
-export default function DocsPage() {
+export default function DocsPage(): React.ReactElement {
   return (
     <div className="py-32 md:pt-44">
+      <BreadcrumbJsonLd
+        items={[
+          { name: "Home", href: "/" },
+          { name: "Documentation", href: "/docs" },
+        ]}
+      />
       <div className="mx-auto max-w-2xl px-6">
         <div className="text-center">
           <h1 className="text-balance text-4xl font-bold">Documentation</h1>
@@ -71,7 +82,11 @@ export default function DocsPage() {
             nativeButton={false}
           >
             <span>Start Building</span>
-            <ChevronRight className="opacity-50" />
+            <HugeiconsIcon
+              icon={ArrowRight01Icon}
+              strokeWidth={2}
+              className="opacity-50 size-4"
+            />
           </Button>
         </div>
       </div>

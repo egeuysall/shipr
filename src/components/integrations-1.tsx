@@ -1,4 +1,5 @@
-import { ChevronRight } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { ArrowRight01Icon } from "@hugeicons/core-free-icons";
 import { Vercel } from "@/components/ui/svgs/vercel";
 import { Supabase } from "@/components/ui/svgs/supabase";
 import { Linear } from "@/components/ui/svgs/linear";
@@ -29,7 +30,11 @@ export default function Integrations() {
             nativeButton={false}
           >
             Learn more
-            <ChevronRight />
+            <HugeiconsIcon
+              icon={ArrowRight01Icon}
+              strokeWidth={2}
+              className="size-4"
+            />
           </Button>
         </div>
       </div>

@@ -1,7 +1,13 @@
 "use client";
 import { useState } from "react";
 
-import { Cloud, Cpu, Shield, ChevronRight } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  CloudIcon,
+  CpuIcon,
+  ShieldKeyIcon,
+  ArrowRight01Icon,
+} from "@hugeicons/core-free-icons";
 import { Vercel } from "@/components/ui/svgs/vercel";
 import { Supabase } from "@/components/ui/svgs/supabase";
 import { Linear } from "@/components/ui/svgs/linear";
@@ -40,7 +46,11 @@ export default function Features() {
               nativeButton={false}
             >
               Get started
-              <ChevronRight />
+              <HugeiconsIcon
+                icon={ArrowRight01Icon}
+                strokeWidth={2}
+                className="size-4"
+              />
             </Button>
           </div>
           <div className="mt-16 *:w-full *:cursor-pointer">
@@ -62,7 +72,11 @@ export default function Features() {
               data-selected={feature === "real-time-sync"}
               className="not-data-[selected=true]:hover:text-foreground not-data-[selected=true]:text-muted-foreground flex items-center gap-3 py-2 text-sm"
             >
-              <Cloud className="size-4" />
+              <HugeiconsIcon
+                icon={CloudIcon}
+                strokeWidth={2}
+                className="size-4"
+              />
               <span className="in-data-[selected=true]:text-shadow-[0.2px_0_0_currentColor]">
                 Real-time Sync
               </span>
@@ -72,7 +86,11 @@ export default function Features() {
               data-selected={feature === "developer-first"}
               className="not-data-[selected=true]:hover:text-foreground not-data-[selected=true]:text-muted-foreground flex items-center gap-3 py-2 text-sm"
             >
-              <Cpu className="size-4" />
+              <HugeiconsIcon
+                icon={CpuIcon}
+                strokeWidth={2}
+                className="size-4"
+              />
               <span className="in-data-[selected=true]:text-shadow-[0.2px_0_0_currentColor]">
                 Developer-first
               </span>
@@ -82,7 +100,11 @@ export default function Features() {
               data-selected={feature === "enterprise-ready"}
               className="not-data-[selected=true]:hover:text-foreground not-data-[selected=true]:text-muted-foreground flex items-center gap-3 py-2 text-sm"
             >
-              <Shield className="size-4" />
+              <HugeiconsIcon
+                icon={ShieldKeyIcon}
+                strokeWidth={2}
+                className="size-4"
+              />
               <span className="in-data-[selected=true]:text-shadow-[0.2px_0_0_currentColor]">
                 Enterprise-ready
               </span>
@@ -174,8 +196,16 @@ const EnterpriseIllustration = () => {
       aria-hidden
       className="relative flex size-44 items-center justify-center"
     >
-      <Shield className="absolute inset-0 size-full stroke-[0.1px] opacity-15" />
-      <Shield className="fill-card dark:fill-foreground/10 drop-shadow-black/3 stroke-border size-32 stroke-[0.2px] drop-shadow-xl" />
+      <HugeiconsIcon
+        icon={ShieldKeyIcon}
+        strokeWidth={0.1}
+        className="absolute inset-0 size-full opacity-15"
+      />
+      <HugeiconsIcon
+        icon={ShieldKeyIcon}
+        strokeWidth={0.2}
+        className="fill-card dark:fill-foreground/10 drop-shadow-black/3 stroke-border size-32 drop-shadow-xl"
+      />
     </div>
   );
 };

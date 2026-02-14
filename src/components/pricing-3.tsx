@@ -3,7 +3,8 @@
 import posthog from "posthog-js";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Check } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Tick01Icon } from "@hugeicons/core-free-icons";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
@@ -109,7 +110,11 @@ export default function Pricing() {
                     key={feature}
                     className="text-muted-foreground flex items-center gap-2 text-sm"
                   >
-                    <Check className="text-primary size-4" />
+                    <HugeiconsIcon
+                      icon={Tick01Icon}
+                      strokeWidth={2}
+                      className="text-primary size-4"
+                    />
                     {feature}
                   </li>
                 ))}

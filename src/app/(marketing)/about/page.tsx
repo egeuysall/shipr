@@ -1,16 +1,27 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { PAGE_SEO, SITE_CONFIG } from "@/lib/constants";
+import { BreadcrumbJsonLd } from "@/lib/structured-data";
 
 export const metadata: Metadata = {
-  title: "About - Shipr",
-  description: "Learn about the team and mission behind Shipr.",
+  title: PAGE_SEO.about.title,
+  description: PAGE_SEO.about.description,
+  keywords: [...PAGE_SEO.about.keywords],
+  alternates: {
+    canonical: `${SITE_CONFIG.url}/about`,
+  },
 };
 
-// TODO: Replace placeholder content with actual company info, team photos, and mission statement
-export default function AboutPage() {
+export default function AboutPage(): React.ReactElement {
   return (
     <div className="py-32 md:pt-44">
+      <BreadcrumbJsonLd
+        items={[
+          { name: "Home", href: "/" },
+          { name: "About", href: "/about" },
+        ]}
+      />
       <div className="mx-auto max-w-2xl px-6">
         <div className="text-center">
           <h1 className="text-balance text-4xl font-bold">About Shipr</h1>
@@ -47,7 +58,7 @@ export default function AboutPage() {
             <h2 className="text-2xl font-semibold">Get in Touch</h2>
             <p className="text-muted-foreground mt-3 text-sm leading-relaxed">
               Have questions, feedback, or want to partner with us? We&apos;d
-              love to hear from you. Whether yo&apos;re exploring integrations
+              love to hear from you. Whether you&apos;re exploring integrations
               for the first time or looking to scale your existing workflows,
               we&apos;re here to help.
             </p>

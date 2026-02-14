@@ -3,7 +3,8 @@
 import Link from "next/link";
 import posthog from "posthog-js";
 import { Button } from "@/components/ui/button";
-import { ChevronRight } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { ArrowRight01Icon } from "@hugeicons/core-free-icons";
 
 export default function CallToAction() {
   return (
@@ -30,7 +31,11 @@ export default function CallToAction() {
               }
             >
               <span>Get Started Free</span>
-              <ChevronRight className="opacity-50" />
+              <HugeiconsIcon
+                icon={ArrowRight01Icon}
+                strokeWidth={2}
+                className="opacity-50 size-4"
+              />
             </Button>
             <Button
               variant="secondary"

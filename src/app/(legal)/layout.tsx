@@ -1,11 +1,5 @@
-import type { Metadata } from "next";
 import { HeroHeader } from "@/components/header";
 import Footer from "@/components/footer-1";
-
-export const metadata: Metadata = {
-  title: "Shipr - Legal",
-  description: "Legal information for Shipr",
-};
 
 export default function LegalLayout({
   children,
