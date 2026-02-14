@@ -5,7 +5,7 @@ export default function Stats() {
     <section className="bg-background @container py-24">
       <div className="mx-auto max-w-2xl px-6">
         <div className="space-y-4">
-          <h2 className="text-balance font-serif text-4xl font-medium">
+          <h2 className="text-balance text-4xl font-medium">
             Trusted by Teams Worldwide
           </h2>
           <p className="text-muted-foreground text-balance">

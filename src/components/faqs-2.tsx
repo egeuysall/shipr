@@ -47,7 +47,7 @@ export default function FAQs() {
       <div className="mx-auto max-w-3xl px-6">
         <div className="@xl:flex-row @xl:items-start @xl:gap-12 flex flex-col gap-8">
           <div className="@xl:sticky @xl:top-24 @xl:w-64 shrink-0">
-            <h2 className="font-serif text-3xl font-medium">FAQs</h2>
+            <h2 className="text-3xl font-bold">FAQs</h2>
             <p className="text-muted-foreground mt-3 text-sm">
               Your questions answered
             </p>

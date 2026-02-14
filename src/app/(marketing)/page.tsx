@@ -10,12 +10,12 @@ import CallToAction from "@/components/call-to-action-1";
 
 export default function LandingPage() {
   return (
-    <div className="[&_h1]:font-[family-name:var(--font-pixel-square)] [&_h2]:font-[family-name:var(--font-pixel-square)] [&_h3]:font-[family-name:var(--font-pixel-square)]">
+    <div>
       {/* Hero Section */}
       <HeroSection />
 
       {/* Logo Cloud */}
-      <section className="py-8 md:py-12 [&_h2]:font-[family-name:var(--font-pixel-square)]">
+      <section className="pt-8 md:pt-12 [&_h2]:font-[family-name:var(--font-pixel-square)]">
         <div className="mx-auto max-w-7xl px-6">
           <h2 className="text-center text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-12">
             Used by engineers at

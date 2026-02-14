@@ -9,7 +9,7 @@ const links = {
   ],
   company: [
     { label: "About", href: "/about" },
-    { label: "Support", href: "/about#contact" },
+    { label: "Support", href: "mailto:hi@egeuysal.com" },
   ],
   legal: [
     { label: "Privacy", href: "/privacy" },
@@ -33,7 +33,7 @@ export default function Footer() {
             </p>
             <div className="mt-4 flex gap-4">
               <a
-                href="https://github.com"
+                href="https://github.com/egeuysall"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-muted-foreground hover:text-foreground transition-colors"
@@ -53,7 +53,7 @@ export default function Footer() {
                 </svg>
               </a>
               <a
-                href="https://twitter.com"
+                href="https://x.com/egewrk"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-muted-foreground hover:text-foreground transition-colors"

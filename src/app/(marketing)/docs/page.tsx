@@ -38,9 +38,7 @@ export default function DocsPage() {
     <div className="py-32 md:pt-44">
       <div className="mx-auto max-w-2xl px-6">
         <div className="text-center">
-          <h1 className="text-balance font-serif text-4xl font-medium">
-            Documentation
-          </h1>
+          <h1 className="text-balance text-4xl font-bold">Documentation</h1>
           <p className="text-muted-foreground mx-auto mt-4 max-w-md text-balance">
             Everything you need to build with Shipr.
           </p>
@@ -49,7 +47,7 @@ export default function DocsPage() {
         <div className="mt-16 space-y-6">
           {sections.map((section) => (
             <div key={section.title} className="rounded-lg border p-6">
-              <h2 className="font-medium">{section.title}</h2>
+              <h2 className="text-2xl font-semibold">{section.title}</h2>
               <p className="text-muted-foreground mt-1 text-sm">
                 {section.description}
               </p>

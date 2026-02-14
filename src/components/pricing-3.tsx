@@ -1,42 +1,66 @@
-import Link from "next/link";
+"use client";
+
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Check, ArrowRight } from "lucide-react";
+import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@clerk/nextjs";
+import { useRouter } from "next/navigation";
 
 const plans = [
   {
-    name: "Monthly",
-    price: "$29",
-    period: "/month",
-    description: "Flexible month-to-month billing",
+    name: "Free",
+    price: "$0",
+    period: "",
+    badge: "Always free",
+    description: "Core features to get started, no commitment required.",
     features: [
-      "All features included",
-      "Cancel anytime",
-      "No long-term commitment",
+      "Basic core features",
+      "Limited usage quota",
+      "Community support",
+      "Standard performance",
     ],
+    buttonText: "Subscribe",
   },
   {
-    name: "Annual",
-    price: "$19",
-    period: "/month",
-    description: "Save 35% with annual billing",
-    features: ["All features included", "2 months free", "Priority onboarding"],
+    name: "Pro",
+    price: "$12",
+    period: "/ month",
+    originalPrice: "$15",
+    badge: "Save $36 per year",
+    description: "Advanced tools, priority support, built for serious growth.",
+    features: [
+      "Higher usage",
+      "Priority support",
+      "Early access to new features",
+      "Faster processing",
+    ],
+    buttonText: "Start 7-day free trial",
     highlighted: true,
   },
 ];
 
 export default function Pricing() {
+  const { isSignedIn } = useAuth();
+  const router = useRouter();
+
+  const handleGetStarted = () => {
+    if (isSignedIn) {
+      router.push("/pricing");
+    } else {
+      router.push("/sign-in?redirect_url=/pricing");
+    }
+  };
+
   return (
     <section className="bg-background @container py-24">
       <div className="mx-auto max-w-2xl px-6">
         <div className="text-center">
           <h2 className="text-balance text-4xl font-bold">
-            One Plan, Simple Pricing
+            Simple, Transparent Pricing
           </h2>
           <p className="text-muted-foreground mx-auto mt-4 max-w-md text-balance">
-            Everything you need to build powerful integrations. Choose your
-            billing cycle.
+            Start for free, upgrade as you grow. No hidden fees.
           </p>
         </div>
         <div className="@xl:grid-cols-2 @xl:gap-3 mt-12 grid gap-6">
@@ -48,17 +72,29 @@ export default function Pricing() {
                 plan.highlighted && "ring-1 ring-primary",
               )}
             >
-              <div className="mb-6">
-                <h3 className="text-foreground font-medium">{plan.name}</h3>
-                <p className="text-muted-foreground mt-1 text-sm">
+              <div className="mb-4">
+                <div className="text-foreground text-2xl font-bold">
+                  {plan.name}
+                </div>
+                <div className="mt-4 flex items-baseline gap-2">
+                  {plan.originalPrice && (
+                    <span className="text-muted-foreground text-xl line-through">
+                      {plan.originalPrice}
+                    </span>
+                  )}
+                  <span className="text-4xl font-bold">{plan.price}</span>
+                  {plan.period && (
+                    <span className="text-muted-foreground">{plan.period}</span>
+                  )}
+                </div>
+                <p className="text-muted-foreground mt-4 text-sm">
                   {plan.description}
                 </p>
               </div>
-              <div>
-                <span className="text-5xl font-bold">
-                  {plan.price}
+              <div className="mb-4">
+                <span className="text-muted-foreground text-xs font-medium uppercase tracking-wide">
+                  {plan.badge}
                 </span>
-                <span className="text-muted-foreground">{plan.period}</span>
               </div>
               <ul className="mt-6 space-y-3">
                 {plan.features.map((feature) => (
@@ -73,19 +109,14 @@ export default function Pricing() {
               </ul>
               <Button
                 variant={plan.highlighted ? "default" : "outline"}
-                className="mt-8 w-full gap-2"
-                render={<Link href="/pricing" />}
-                nativeButton={false}
+                className="mt-8 w-full"
+                onClick={handleGetStarted}
               >
-                Get Started
-                <ArrowRight className="size-4" />
+                {plan.buttonText}
               </Button>
             </Card>
           ))}
         </div>
-        <p className="text-muted-foreground mt-8 text-center text-sm">
-          All plans include a 7-day free trial.
-        </p>
       </div>
     </section>
   );
