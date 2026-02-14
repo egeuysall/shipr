@@ -9,6 +9,8 @@ import { GeistMono } from "geist/font/mono";
 import { GeistPixelSquare } from "geist/font/pixel";
 import "./globals.css";
 import { cn } from "@/lib/utils";
+import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 export const metadata: Metadata = {
   title: "Shipr",
@@ -23,7 +25,11 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={cn(GeistSans.variable, GeistMono.variable, GeistPixelSquare.variable)}
+      className={cn(
+        GeistSans.variable,
+        GeistMono.variable,
+        GeistPixelSquare.variable,
+      )}
       suppressHydrationWarning
     >
       <body className={cn("antialiased", GeistSans.className)}>
@@ -40,6 +46,8 @@ export default function RootLayout({
           </ClerkProviderWrapper>
           <Toaster />
         </ThemeProvider>
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );

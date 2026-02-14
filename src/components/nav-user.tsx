@@ -3,7 +3,11 @@
 import { UserButton, useUser } from "@clerk/nextjs";
 import { dark } from "@clerk/themes";
 import { useTheme } from "next-themes";
-import { SidebarMenu, SidebarMenuItem } from "@/components/ui/sidebar";
+import {
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton,
+} from "@/components/ui/sidebar";
 
 export function NavUser() {
   const { user } = useUser();
@@ -14,7 +18,10 @@ export function NavUser() {
   return (
     <SidebarMenu>
       <SidebarMenuItem>
-        <div className="flex items-center gap-2 px-2 py-2">
+        <SidebarMenuButton
+          size="lg"
+          className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+        >
           <UserButton
             appearance={{
               baseTheme: resolvedTheme === "dark" ? dark : undefined,
@@ -26,7 +33,7 @@ export function NavUser() {
               {user?.primaryEmailAddress?.emailAddress}
             </span>
           </div>
-        </div>
+        </SidebarMenuButton>
       </SidebarMenuItem>
     </SidebarMenu>
   );

@@ -2,7 +2,11 @@
 
 import { useSyncUser } from "@/hooks/use-sync-user";
 import { AppSidebar } from "@/components/app-sidebar";
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import {
+  SidebarProvider,
+  SidebarTrigger,
+  SidebarInset,
+} from "@/components/ui/sidebar";
 import { Separator } from "@/components/ui/separator";
 import {
   Breadcrumb,
@@ -23,13 +27,20 @@ export default function DashboardLayout({
   const pathname = usePathname();
 
   const getBreadcrumbs = () => {
+    const segments = pathname.split("/").filter(Boolean);
+
     if (pathname === "/dashboard") {
-      return { parent: "Dashboard", current: "Overview" };
+      return { parent: null, current: "Dashboard" };
     }
-    if (pathname.includes("settings")) {
-      return { parent: "Dashboard", current: "Settings" };
-    }
-    return { parent: "Dashboard", current: "Page" };
+
+    // Fallback for any other dashboard routes
+    const lastSegment = segments[segments.length - 1];
+    const current = lastSegment
+      .split("-")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
+
+    return { parent: "Dashboard", current };
   };
 
   const breadcrumbs = getBreadcrumbs();
@@ -37,22 +48,23 @@ export default function DashboardLayout({
   return (
     <SidebarProvider>
       <AppSidebar />
-      <main className="flex flex-1 flex-col bg-background">
-        <header className="flex h-16 shrink-0 items-center gap-2 border-b">
+      <SidebarInset>
+        <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
           <div className="flex items-center gap-2 px-4">
             <SidebarTrigger className="-ml-1" />
-            <Separator
-              orientation="vertical"
-              className="mr-2 data-vertical:h-4 data-vertical:self-auto"
-            />
+            <Separator orientation="vertical" className="mr-2 h-4" />
             <Breadcrumb>
               <BreadcrumbList>
-                <BreadcrumbItem className="hidden md:block">
-                  <BreadcrumbLink href="/dashboard">
-                    {breadcrumbs.parent}
-                  </BreadcrumbLink>
-                </BreadcrumbItem>
-                <BreadcrumbSeparator className="hidden md:block" />
+                {breadcrumbs.parent && (
+                  <>
+                    <BreadcrumbItem className="hidden md:block">
+                      <BreadcrumbLink href="/dashboard">
+                        {breadcrumbs.parent}
+                      </BreadcrumbLink>
+                    </BreadcrumbItem>
+                    <BreadcrumbSeparator className="hidden md:block" />
+                  </>
+                )}
                 <BreadcrumbItem>
                   <BreadcrumbPage>{breadcrumbs.current}</BreadcrumbPage>
                 </BreadcrumbItem>
@@ -60,8 +72,8 @@ export default function DashboardLayout({
             </Breadcrumb>
           </div>
         </header>
-        <div className="flex flex-1 flex-col gap-4 p-4 pt-4">{children}</div>
-      </main>
+        <div className="flex flex-1 flex-col gap-4 p-4 pt-0">{children}</div>
+      </SidebarInset>
     </SidebarProvider>
   );
 }

@@ -11,21 +11,25 @@ export const metadata: Metadata = {
 
 const sections = [
   {
+    id: "getting-started",
     title: "Getting Started",
     description:
       "Learn the basics and set up your first integration in under 5 minutes.",
   },
   {
+    id: "api",
     title: "API Reference",
     description:
       "Complete reference for all Shipr API endpoints, parameters, and response formats.",
   },
   {
-    title: "Guides",
+    id: "examples",
+    title: "Examples",
     description:
       "Step-by-step tutorials for common integration patterns and use cases.",
   },
   {
+    id: "sdks",
     title: "SDKs & Libraries",
     description:
       "Official client libraries for JavaScript, Python, Go, and more.",
@@ -46,7 +50,11 @@ export default function DocsPage() {
 
         <div className="mt-16 space-y-6">
           {sections.map((section) => (
-            <div key={section.title} className="rounded-lg border p-6">
+            <div
+              key={section.title}
+              id={section.id}
+              className="rounded-lg border p-6 scroll-mt-32"
+            >
               <h2 className="text-2xl font-semibold">{section.title}</h2>
               <p className="text-muted-foreground mt-1 text-sm">
                 {section.description}
