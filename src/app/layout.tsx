@@ -3,6 +3,7 @@ import { ClerkProviderWrapper } from "@/components/clerk-provider-wrapper";
 import { ConvexClientProvider } from "@/lib/convex-client-provider";
 import { ThemeProvider } from "@/components/theme-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { Toaster } from "@/components/ui/sonner";
 import { Geist, Geist_Mono, Inter } from "next/font/google";
 import "./globals.css";
 
@@ -44,6 +45,7 @@ export default function RootLayout({
               <ConvexClientProvider>{children}</ConvexClientProvider>
             </TooltipProvider>
           </ClerkProviderWrapper>
+          <Toaster />
         </ThemeProvider>
       </body>
     </html>
