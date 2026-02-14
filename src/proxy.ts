@@ -1,6 +1,24 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
+// Content-Security-Policy directives
+// Kept permissive enough for Clerk, Convex, PostHog, Sentry, and Vercel Analytics
+const cspDirectives = [
+  "default-src 'self'",
+  "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://clerk.shipr.dev https://*.clerk.accounts.dev https://challenges.cloudflare.com https://us.i.posthog.com https://us-assets.i.posthog.com https://va.vercel-scripts.com",
+  "style-src 'self' 'unsafe-inline'",
+  "img-src 'self' blob: data: https://img.clerk.com https://images.unsplash.com https://avatars.githubusercontent.com",
+  "font-src 'self' data:",
+  "connect-src 'self' https://*.convex.cloud wss://*.convex.cloud https://clerk.shipr.dev https://*.clerk.accounts.dev https://us.i.posthog.com https://us-assets.i.posthog.com https://*.sentry.io https://va.vercel-scripts.com",
+  "frame-src 'self' https://clerk.shipr.dev https://*.clerk.accounts.dev https://challenges.cloudflare.com",
+  "worker-src 'self' blob:",
+  "object-src 'none'",
+  "base-uri 'self'",
+  "form-action 'self'",
+  "frame-ancestors 'self'",
+  "upgrade-insecure-requests",
+].join("; ");
+
 const isProtectedRoute = createRouteMatcher(["/dashboard(.*)"]);
 const isAuthRoute = createRouteMatcher(["/sign-in(.*)", "/sign-up(.*)"]);
 
@@ -21,20 +39,22 @@ export default clerkMiddleware(async (auth, req) => {
   const response = NextResponse.next();
 
   // ──────────────────────────────────────────────
-  // Security headers
+  // Security headers (single source of truth)
   // ──────────────────────────────────────────────
   response.headers.set("X-DNS-Prefetch-Control", "on");
   response.headers.set(
     "Strict-Transport-Security",
-    "max-age=63072000; includeSubDomains; preload"
+    "max-age=63072000; includeSubDomains; preload",
   );
   response.headers.set("X-Frame-Options", "SAMEORIGIN");
   response.headers.set("X-Content-Type-Options", "nosniff");
   response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
   response.headers.set(
     "Permissions-Policy",
-    "camera=(), microphone=(), geolocation=(), browsing-topics=()"
+    "camera=(), microphone=(), geolocation=(), browsing-topics=()",
   );
+  response.headers.set("X-XSS-Protection", "1; mode=block");
+  response.headers.set("Content-Security-Policy", cspDirectives);
 
   return response;
 });
