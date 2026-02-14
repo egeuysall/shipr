@@ -36,7 +36,7 @@ export default function Features() {
               variant="secondary"
               size="sm"
               className="gap-1 pr-1.5"
-              render={<Link href="/sign-up" />}
+              render={<Link href="/features" />}
               nativeButton={false}
             >
               Get started

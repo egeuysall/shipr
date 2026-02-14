@@ -22,11 +22,9 @@ export default function Testimonials() {
               />
             </div>
             <div className="space-y-0.5">
-              <p className="text-muted-foreground text-sm font-medium">
-                Ege Uysal
-              </p>
+              <p className="text-sm font-medium">Ege Uysal</p>
               <p className="text-muted-foreground text-xs">
-                Founder, CEO - Shipr
+                Founder & CEO at Shipr
               </p>
             </div>
           </div>

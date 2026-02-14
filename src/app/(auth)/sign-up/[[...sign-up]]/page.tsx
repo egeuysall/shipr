@@ -8,12 +8,10 @@ export default function SignUpPage() {
   const { resolvedTheme } = useTheme();
 
   return (
-    <div className="flex min-h-screen items-center justify-center">
-      <SignUp
-        appearance={{
-          baseTheme: resolvedTheme === "dark" ? dark : undefined,
-        }}
-      />
-    </div>
+    <SignUp
+      appearance={{
+        baseTheme: resolvedTheme === "dark" ? dark : undefined,
+      }}
+    />
   );
 }

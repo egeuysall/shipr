@@ -50,7 +50,7 @@ export default function HeroSection() {
           <div className="mx-auto mt-24 max-w-xl">
             <div className="grid scale-95 grid-cols-3 gap-12">
               <div className="ml-auto blur-[2px]">
-                <Card className="shadow-foreground/10 bg-transparent rounded-lg flex flex-row h-10 w-fit items-center gap-2 px-3 sm:h-10 sm:px-4 py-0">
+                <Card className="shadow-foreground/10 bg-background rounded-lg flex flex-row h-10 w-fit items-center gap-2 px-3 sm:h-10 sm:px-4 py-0">
                   <div className="text-foreground shrink-0 flex items-center">
                     <Supabase className="size-4" />
                   </div>
@@ -60,7 +60,7 @@ export default function HeroSection() {
                 </Card>
               </div>
               <div className="ml-auto">
-                <Card className="shadow-foreground/10 bg-transparent border rounded-lg flex flex-row h-10 w-fit items-center gap-2 px-3 sm:h-10 sm:px-4 py-0">
+                <Card className="shadow-foreground/10 bg-background border rounded-lg flex flex-row h-10 w-fit items-center gap-2 px-3 sm:h-10 sm:px-4 py-0">
                   <div className="text-foreground shrink-0 flex items-center">
                     <Slack className="size-4" />
                   </div>
@@ -70,7 +70,7 @@ export default function HeroSection() {
                 </Card>
               </div>
               <div className="ml-auto blur-[2px]">
-                <Card className="shadow-foreground/10 bg-transparent border rounded-lg flex flex-row h-10 w-fit items-center gap-2 px-3 sm:h-10 sm:px-4 py-0">
+                <Card className="shadow-foreground/10 bg-background border rounded-lg flex flex-row h-10 w-fit items-center gap-2 px-3 sm:h-10 sm:px-4 py-0">
                   <div className="text-foreground shrink-0 flex items-center">
                     <Figma className="size-4" />
                   </div>
@@ -80,7 +80,7 @@ export default function HeroSection() {
                 </Card>
               </div>
               <div className="mr-auto">
-                <Card className="shadow-foreground/10 bg-transparent border rounded-lg flex flex-row h-10 w-fit items-center gap-2 px-3 sm:h-10 sm:px-4 py-0">
+                <Card className="shadow-foreground/10 bg-background border rounded-lg flex flex-row h-10 w-fit items-center gap-2 px-3 sm:h-10 sm:px-4 py-0">
                   <div className="text-foreground shrink-0 flex items-center">
                     <Vercel className="size-4" />
                   </div>
@@ -90,7 +90,7 @@ export default function HeroSection() {
                 </Card>
               </div>
               <div className="blur-[2px]">
-                <Card className="shadow-foreground/10 bg-transparent border rounded-lg flex flex-row h-10 w-fit items-center gap-2 px-3 sm:h-10 sm:px-4 py-0">
+                <Card className="shadow-foreground/10 bg-background border rounded-lg flex flex-row h-10 w-fit items-center gap-2 px-3 sm:h-10 sm:px-4 py-0">
                   <div className="text-foreground shrink-0 flex items-center">
                     <Firebase className="size-4" />
                   </div>
@@ -100,7 +100,7 @@ export default function HeroSection() {
                 </Card>
               </div>
               <div>
-                <Card className="shadow-foreground/10 bg-transparent border rounded-lg flex flex-row h-10 w-fit items-center gap-2 px-3 sm:h-10 sm:px-4 py-0">
+                <Card className="shadow-foreground/10 bg-background border rounded-lg flex flex-row h-10 w-fit items-center gap-2 px-3 sm:h-10 sm:px-4 py-0">
                   <div className="text-foreground shrink-0 flex items-center">
                     <Linear className="size-4" />
                   </div>
@@ -110,7 +110,7 @@ export default function HeroSection() {
                 </Card>
               </div>
               <div className="ml-auto blur-[2px]">
-                <Card className="shadow-foreground/10 bg-transparent border rounded-lg flex flex-row h-10 w-fit items-center gap-2 px-3 sm:h-10 sm:px-4 py-0">
+                <Card className="shadow-foreground/10 bg-background border rounded-lg flex flex-row h-10 w-fit items-center gap-2 px-3 sm:h-10 sm:px-4 py-0">
                   <div className="text-foreground shrink-0 flex items-center">
                     <Twilio className="size-4" />
                   </div>
@@ -120,7 +120,7 @@ export default function HeroSection() {
                 </Card>
               </div>
               <div>
-                <Card className="shadow-foreground/10 bg-transparent border rounded-lg flex flex-row h-10 w-fit items-center gap-2 px-3 sm:h-10 sm:px-4 py-0">
+                <Card className="shadow-foreground/10 bg-background border rounded-lg flex flex-row h-10 w-fit items-center gap-2 px-3 sm:h-10 sm:px-4 py-0">
                   <div className="text-foreground shrink-0 flex items-center">
                     <Claude className="size-4" />
                   </div>
@@ -130,7 +130,7 @@ export default function HeroSection() {
                 </Card>
               </div>
               <div className="blur-[2px]">
-                <Card className="shadow-foreground/10 bg-transparent border rounded-lg flex flex-row h-10 w-fit items-center gap-2 px-3 sm:h-10 sm:px-4 py-0">
+                <Card className="shadow-foreground/10 bg-background border rounded-lg flex flex-row h-10 w-fit items-center gap-2 px-3 sm:h-10 sm:px-4 py-0">
                   <div className="text-foreground shrink-0 flex items-center">
                     <Clerk className="size-4" />
                   </div>

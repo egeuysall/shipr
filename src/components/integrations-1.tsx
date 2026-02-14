@@ -25,6 +25,7 @@ export default function Integrations() {
             variant="secondary"
             size="sm"
             className="gap-1 pr-1.5"
+            render={<Link href="/features" />}
             nativeButton={false}
           >
             Learn more

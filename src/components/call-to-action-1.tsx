@@ -4,7 +4,7 @@ import { ChevronRight } from "lucide-react";
 
 export default function CallToAction() {
   return (
-    <section className="bg-background @container py-24">
+    <section className="bg-background @container pb-24">
       <div className="mx-auto max-w-2xl px-6">
         <div className="text-center">
           <h2 className="text-balance text-4xl font-medium">
