@@ -1,5 +1,5 @@
-'use client'
-import React, { useEffect, useState } from 'react'
+"use client";
+import React, { useEffect, useState } from "react";
 
 import { Beacon } from '@/components/ui/svgs/beacon'
 import { Bolt } from '@/components/ui/svgs/bolt'
@@ -82,18 +82,18 @@ const logos: { [key in LogoGroup]: React.ReactNode[] } = {
 export default function LogoCloud() {
     const [currentGroup, setCurrentGroup] = useState<LogoGroup>('ai')
 
-    useEffect(() => {
-        const interval = setInterval(() => {
-            setCurrentGroup((prev) => {
-                const groups = Object.keys(logos) as LogoGroup[]
-                const currentIndex = groups.indexOf(prev)
-                const nextIndex = (currentIndex + 1) % groups.length
-                return groups[nextIndex]
-            })
-        }, 2500)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentGroup((prev) => {
+        const groups = Object.keys(logos) as LogoGroup[];
+        const currentIndex = groups.indexOf(prev);
+        const nextIndex = (currentIndex + 1) % groups.length;
+        return groups[nextIndex];
+      });
+    }, 2500);
 
-        return () => clearInterval(interval)
-    }, [])
+    return () => clearInterval(interval);
+  }, []);
 
     return (
         <section className="bg-background py-12">

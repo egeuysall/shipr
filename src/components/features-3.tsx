@@ -1,18 +1,22 @@
-'use client'
-import { useState } from 'react'
+"use client";
+import { useState } from "react";
 
-import { Cloud, Cpu, Shield, ChevronRight } from 'lucide-react'
-import { Vercel } from '@/components/ui/svgs/vercel'
-import { Supabase } from '@/components/ui/svgs/supabase'
-import { Linear } from '@/components/ui/svgs/linear'
-import { Slack } from '@/components/ui/svgs/slack'
-import { Firebase } from '@/components/ui/svgs/firebase'
-import { ClerkIconDark as Clerk } from '@/components/ui/svgs/clerk'
-import { Button } from '@/components/ui/button'
-import Link from 'next/link'
-import { cn } from '@/lib/utils'
+import { Cloud, Cpu, Shield, ChevronRight } from "lucide-react";
+import { Vercel } from "@/components/ui/svgs/vercel";
+import { Supabase } from "@/components/ui/svgs/supabase";
+import { Linear } from "@/components/ui/svgs/linear";
+import { Slack } from "@/components/ui/svgs/slack";
+import { Firebase } from "@/components/ui/svgs/firebase";
+import { ClerkIconDark as Clerk } from "@/components/ui/svgs/clerk";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import { cn } from "@/lib/utils";
 
-type Feature = 'seamless-integrations' | 'real-time-sync' | 'developer-first' | 'enterprise-ready'
+type Feature =
+  | "seamless-integrations"
+  | "real-time-sync"
+  | "developer-first"
+  | "enterprise-ready";
 
 export default function Features() {
     const [feature, setFeature] = useState<Feature>('seamless-integrations')
@@ -80,106 +84,107 @@ export default function Features() {
 }
 
 const IntegrationsIllustration = () => {
-    return (
-        <div
-            aria-hidden
-            className="**:fill-foreground flex h-44 flex-col justify-between pt-8">
-            <div className="relative flex h-10 items-center gap-12 px-6">
-                <div className="bg-border absolute inset-0 my-auto h-px"></div>
+  return (
+    <div
+      aria-hidden
+      className="**:fill-foreground flex h-44 flex-col justify-between pt-8"
+    >
+      <div className="relative flex h-10 items-center gap-12 px-6">
+        <div className="bg-border absolute inset-0 my-auto h-px"></div>
 
-                <div className="bg-card shadow-black/6.5 ring-border relative flex h-8 items-center rounded-full px-3 shadow-sm ring">
-                    <Vercel className="size-3.5" />
-                </div>
-                <div className="bg-card shadow-black/6.5 ring-border relative flex h-8 items-center rounded-full px-3 shadow-sm ring">
-                    <Slack className="size-3.5" />
-                </div>
-            </div>
-            <div className="pl-17 relative flex h-10 items-center justify-between gap-12 pr-6">
-                <div className="bg-border absolute inset-0 my-auto h-px"></div>
-
-                <div className="bg-card shadow-black/6.5 ring-border relative flex h-8 items-center rounded-full px-3 shadow-sm ring">
-                    <Clerk className="size-3.5" />
-                </div>
-                <div className="bg-card shadow-black/6.5 ring-border relative flex h-8 items-center rounded-full px-3 shadow-sm ring">
-                    <Linear className="size-3.5" />
-                </div>
-            </div>
-            <div className="relative flex h-10 items-center gap-20 px-8">
-                <div className="bg-border absolute inset-0 my-auto h-px"></div>
-
-                <div className="bg-card shadow-black/6.5 ring-border relative flex h-8 items-center rounded-full px-3 shadow-sm ring">
-                    <Supabase className="size-3.5" />
-                </div>
-                <div className="bg-card shadow-black/6.5 ring-border relative flex h-8 items-center rounded-full px-3 shadow-sm ring">
-                    <Firebase className="size-3.5" />
-                </div>
-            </div>
+        <div className="bg-card shadow-black/6.5 ring-border relative flex h-8 items-center rounded-full px-3 shadow-sm ring">
+          <Vercel className="size-3.5" />
         </div>
-    )
-}
+        <div className="bg-card shadow-black/6.5 ring-border relative flex h-8 items-center rounded-full px-3 shadow-sm ring">
+          <Slack className="size-3.5" />
+        </div>
+      </div>
+      <div className="pl-17 relative flex h-10 items-center justify-between gap-12 pr-6">
+        <div className="bg-border absolute inset-0 my-auto h-px"></div>
+
+        <div className="bg-card shadow-black/6.5 ring-border relative flex h-8 items-center rounded-full px-3 shadow-sm ring">
+          <Clerk className="size-3.5" />
+        </div>
+        <div className="bg-card shadow-black/6.5 ring-border relative flex h-8 items-center rounded-full px-3 shadow-sm ring">
+          <Linear className="size-3.5" />
+        </div>
+      </div>
+      <div className="relative flex h-10 items-center gap-20 px-8">
+        <div className="bg-border absolute inset-0 my-auto h-px"></div>
+
+        <div className="bg-card shadow-black/6.5 ring-border relative flex h-8 items-center rounded-full px-3 shadow-sm ring">
+          <Supabase className="size-3.5" />
+        </div>
+        <div className="bg-card shadow-black/6.5 ring-border relative flex h-8 items-center rounded-full px-3 shadow-sm ring">
+          <Firebase className="size-3.5" />
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const RealTimeIllustration = () => {
-    return (
-        <div
-            aria-hidden
-            className="relative h-44 translate-y-6">
-            <div className="bg-foreground/15 absolute inset-0 mx-auto w-px"></div>
-            <div className="absolute -inset-x-16 top-6 aspect-square rounded-full border"></div>
-            <div className="border-primary mask-l-from-50% mask-l-to-90% mask-r-from-50% mask-r-to-50% absolute -inset-x-16 top-6 aspect-square rounded-full border"></div>
-            <div className="absolute -inset-x-8 top-24 aspect-square rounded-full border"></div>
-            <div className="mask-r-from-50% mask-r-to-90% mask-l-from-50% mask-l-to-50% absolute -inset-x-8 top-24 aspect-square rounded-full border border-lime-500"></div>
-        </div>
-    )
-}
+  return (
+    <div aria-hidden className="relative h-44 translate-y-6">
+      <div className="bg-foreground/15 absolute inset-0 mx-auto w-px"></div>
+      <div className="absolute -inset-x-16 top-6 aspect-square rounded-full border"></div>
+      <div className="border-primary mask-l-from-50% mask-l-to-90% mask-r-from-50% mask-r-to-50% absolute -inset-x-16 top-6 aspect-square rounded-full border"></div>
+      <div className="absolute -inset-x-8 top-24 aspect-square rounded-full border"></div>
+      <div className="mask-r-from-50% mask-r-to-90% mask-l-from-50% mask-l-to-50% absolute -inset-x-8 top-24 aspect-square rounded-full border border-lime-500"></div>
+    </div>
+  );
+};
 
 const EnterpriseIllustration = () => {
-    return (
-        <div
-            aria-hidden
-            className="relative flex size-44 items-center justify-center">
-            <Shield className="absolute inset-0 size-full stroke-[0.1px] opacity-15" />
-            <Shield className="fill-card dark:fill-foreground/10 drop-shadow-black/3 stroke-border size-32 stroke-[0.2px] drop-shadow-xl" />
-        </div>
-    )
-}
+  return (
+    <div
+      aria-hidden
+      className="relative flex size-44 items-center justify-center"
+    >
+      <Shield className="absolute inset-0 size-full stroke-[0.1px] opacity-15" />
+      <Shield className="fill-card dark:fill-foreground/10 drop-shadow-black/3 stroke-border size-32 stroke-[0.2px] drop-shadow-xl" />
+    </div>
+  );
+};
 
 const DeveloperIllustration = () => {
-    return (
-        <div
-            aria-hidden
-            className="*:bg-foreground/15 flex h-44 justify-between pb-6 pt-12 *:h-full *:w-px">
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div className="bg-primary!"></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div className="bg-primary!"></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div className="bg-primary!"></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div className="bg-primary!"></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div className="bg-primary!"></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div className="bg-primary!"></div>
-        </div>
-    )
-}
+  return (
+    <div
+      aria-hidden
+      className="*:bg-foreground/15 flex h-44 justify-between pb-6 pt-12 *:h-full *:w-px"
+    >
+      <div></div>
+      <div></div>
+      <div></div>
+      <div></div>
+      <div className="bg-primary!"></div>
+      <div></div>
+      <div></div>
+      <div></div>
+      <div></div>
+      <div className="bg-primary!"></div>
+      <div></div>
+      <div></div>
+      <div></div>
+      <div className="bg-primary!"></div>
+      <div></div>
+      <div></div>
+      <div></div>
+      <div></div>
+      <div className="bg-primary!"></div>
+      <div></div>
+      <div></div>
+      <div></div>
+      <div></div>
+      <div className="bg-primary!"></div>
+      <div></div>
+      <div></div>
+      <div></div>
+      <div></div>
+      <div></div>
+      <div></div>
+      <div></div>
+      <div className="bg-primary!"></div>
+    </div>
+  );
+};

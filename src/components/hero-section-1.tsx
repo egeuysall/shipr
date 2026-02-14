@@ -22,7 +22,7 @@ export default function HeroSection() {
       <main className="overflow-hidden">
         <section className="bg-background">
           <div className="relative py-32 md:pt-44">
-            <div className="mask-radial-from-45% mask-radial-to-75% mask-radial-at-top mask-radial-[75%_100%] mask-t-from-50% lg:aspect-9/4 absolute inset-0 aspect-square lg:top-24 dark:opacity-5">
+            <div className="mask-radial-from-50% mask-radial-to-85% mask-radial-at-top mask-radial-[75%_100%] mask-t-from-50% lg:aspect-9/4 absolute inset-0 aspect-square lg:top-24 dark:opacity-5">
               <Image
                 src="https://images.unsplash.com/photo-1740516367177-ae20098c8786?q=80&w=2268&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
                 alt="hero background"
@@ -31,13 +31,14 @@ export default function HeroSection() {
                 className="size-full object-cover object-top"
               />
             </div>
+            <div className="absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-background via-background/80 to-transparent pointer-events-none z-5"></div>
             <div className="relative z-10 mx-auto w-full max-w-5xl px-6">
               <div className="mx-auto max-w-md text-center">
                 <h1 className="text-balance font-serif text-4xl font-medium sm:text-5xl">
                   Ship faster. Integrate smarter.
                 </h1>
                 <p className="text-muted-foreground mt-4 text-balance">
-                  Veil is your all-in-one engine for adding seamless
+                  Shipr is your all-in-one engine for adding seamless
                   integrations to your app.
                 </p>
 
@@ -53,74 +54,92 @@ export default function HeroSection() {
               <div className="mx-auto mt-24 max-w-xl">
                 <div className="grid scale-95 grid-cols-3 gap-12">
                   <div className="ml-auto blur-[2px]">
-                    <Card className="shadow-foreground/10 flex h-8 w-fit items-center gap-2 rounded-xl px-3 sm:h-10 sm:px-4">
-                      <Supabase className="size-4 fill-foreground" />
-                      <span className="text-nowrap font-medium max-sm:text-xs">
+                    <Card className="shadow-foreground/10 border-border flex flex-row h-10 w-fit items-center gap-2 rounded-xl px-3 sm:h-12 sm:px-4 py-0">
+                      <div className="text-foreground shrink-0 flex items-center">
+                        <Supabase className="size-4 sm:size-5" />
+                      </div>
+                      <span className="text-nowrap font-medium text-xs sm:text-sm text-foreground">
                         Supabase
                       </span>
                     </Card>
                   </div>
                   <div className="ml-auto">
-                    <Card className="shadow-foreground/10 flex h-8 w-fit items-center gap-2 rounded-xl px-3 sm:h-10 sm:px-4">
-                      <Slack className="size-4 fill-foreground" />
-                      <span className="text-nowrap font-medium max-sm:text-xs">
+                    <Card className="shadow-foreground/10 border border-border flex flex-row h-10 w-fit items-center gap-2 rounded-xl px-3 sm:h-12 sm:px-4 py-0">
+                      <div className="text-foreground shrink-0 flex items-center">
+                        <Slack className="size-4 sm:size-5" />
+                      </div>
+                      <span className="text-nowrap font-medium text-xs sm:text-sm text-foreground">
                         Slack
                       </span>
                     </Card>
                   </div>
                   <div className="ml-auto blur-[2px]">
-                    <Card className="shadow-foreground/10 flex h-8 w-fit items-center gap-2 rounded-xl px-3 sm:h-10 sm:px-4">
-                      <Figma className="size-4 fill-foreground" />
-                      <span className="text-nowrap font-medium max-sm:text-xs">
+                    <Card className="shadow-foreground/10 border border-border flex flex-row h-10 w-fit items-center gap-2 rounded-xl px-3 sm:h-12 sm:px-4 py-0">
+                      <div className="text-foreground shrink-0 flex items-center">
+                        <Figma className="size-4 sm:size-5" />
+                      </div>
+                      <span className="text-nowrap font-medium text-xs sm:text-sm text-foreground">
                         Figma
                       </span>
                     </Card>
                   </div>
                   <div className="mr-auto">
-                    <Card className="shadow-foreground/10 flex h-8 w-fit items-center gap-2 rounded-xl px-3 sm:h-10 sm:px-4">
-                      <Vercel className="size-4 fill-foreground" />
-                      <span className="text-nowrap font-medium max-sm:text-xs">
+                    <Card className="shadow-foreground/10 border border-border flex flex-row h-10 w-fit items-center gap-2 rounded-xl px-3 sm:h-12 sm:px-4 py-0">
+                      <div className="text-foreground shrink-0 flex items-center">
+                        <Vercel className="size-4 sm:size-5" />
+                      </div>
+                      <span className="text-nowrap font-medium text-xs sm:text-sm text-foreground">
                         Vercel
                       </span>
                     </Card>
                   </div>
                   <div className="blur-[2px]">
-                    <Card className="shadow-foreground/10 flex h-8 w-fit items-center gap-2 rounded-xl px-3 sm:h-10 sm:px-4">
-                      <Firebase className="size-3 sm:size-4 fill-foreground" />
-                      <span className="text-nowrap font-medium max-sm:text-xs">
+                    <Card className="shadow-foreground/10 border border-border flex flex-row h-10 w-fit items-center gap-2 rounded-xl px-3 sm:h-12 sm:px-4 py-0">
+                      <div className="text-foreground shrink-0 flex items-center">
+                        <Firebase className="size-4 sm:size-5" />
+                      </div>
+                      <span className="text-nowrap font-medium text-xs sm:text-sm text-foreground">
                         Firebase
                       </span>
                     </Card>
                   </div>
                   <div>
-                    <Card className="shadow-foreground/10 mx-a flex h-10 h-8 w-fit items-center gap-2 rounded-xl px-3 sm:h-10 sm:px-4">
-                      <Linear className="size-3 sm:size-4 fill-foreground" />
-                      <span className="text-nowrap font-medium max-sm:text-xs">
+                    <Card className="shadow-foreground/10 border border-border flex flex-row h-10 w-fit items-center gap-2 rounded-xl px-3 sm:h-12 sm:px-4 py-0">
+                      <div className="text-foreground shrink-0 flex items-center">
+                        <Linear className="size-4 sm:size-5" />
+                      </div>
+                      <span className="text-nowrap font-medium text-xs sm:text-sm text-foreground">
                         Linear
                       </span>
                     </Card>
                   </div>
                   <div className="ml-auto blur-[2px]">
-                    <Card className="shadow-foreground/10 flex h-8 w-fit items-center gap-2 rounded-xl px-3 sm:h-10 sm:px-4">
-                      <Twilio className="size-3 sm:size-4 fill-foreground" />
-                      <span className="text-nowrap font-medium max-sm:text-xs">
+                    <Card className="shadow-foreground/10 border border-border flex flex-row h-10 w-fit items-center gap-2 rounded-xl px-3 sm:h-12 sm:px-4 py-0">
+                      <div className="text-foreground shrink-0 flex items-center">
+                        <Twilio className="size-4 sm:size-5" />
+                      </div>
+                      <span className="text-nowrap font-medium text-xs sm:text-sm text-foreground">
                         Twilio
                       </span>
                     </Card>
                   </div>
                   <div>
-                    <Card className="shadow-foreground/10 mx-a flex h-10 h-8 w-fit items-center gap-2 rounded-xl px-3 sm:h-10 sm:px-4">
-                      <Claude className="size-3 sm:size-4 fill-foreground" />
-                      <span className="text-nowrap font-medium max-sm:text-xs">
+                    <Card className="shadow-foreground/10 border border-border flex flex-row h-10 w-fit items-center gap-2 rounded-xl px-3 sm:h-12 sm:px-4 py-0">
+                      <div className="text-foreground shrink-0 flex items-center">
+                        <Claude className="size-4 sm:size-5" />
+                      </div>
+                      <span className="text-nowrap font-medium text-xs sm:text-sm text-foreground">
                         Claude AI
                       </span>
                     </Card>
                   </div>
                   <div className="blur-[2px]">
-                    <Card className="shadow-foreground/10 flex h-8 w-fit items-center gap-2 rounded-xl px-3 sm:h-10 sm:px-4">
-                      <Clerk className="size-3 sm:size-4 fill-foreground" />
-                      <span className="text-nowrap font-medium max-sm:text-xs">
-                        Clerk{" "}
+                    <Card className="shadow-foreground/10 border border-border flex flex-row h-10 w-fit items-center gap-2 rounded-xl px-3 sm:h-12 sm:px-4 py-0">
+                      <div className="text-foreground shrink-0 flex items-center">
+                        <Clerk className="size-4 sm:size-5" />
+                      </div>
+                      <span className="text-nowrap font-medium text-xs sm:text-sm text-foreground">
+                        Clerk
                       </span>
                     </Card>
                   </div>
