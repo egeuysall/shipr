@@ -35,6 +35,18 @@ The module uses Convex's 3-step upload flow:
 - Rejects oversized files and disallowed MIME types
 - Deletes invalid uploads from storage
 
+### Image upload rate limiting
+
+Image uploads are rate-limited per authenticated user in a rolling time window.
+
+- Config lives in `src/lib/files/config.ts` under `FILE_UPLOAD_RATE_LIMITS.image`
+- Enforcement happens in `convex/files.ts` during `saveFile`
+- If limit is exceeded, the uploaded blob is deleted and the request is rejected
+- Environment overrides:
+  - `FILE_IMAGE_UPLOAD_RATE_LIMIT_MAX_UPLOADS` (default `10`)
+  - `FILE_IMAGE_UPLOAD_RATE_LIMIT_WINDOW_MS` (default `60000`)
+  - set either to `0` to disable image upload rate limiting
+
 ### Filename sanitization
 
 Filenames are sanitized before persistence to remove path separators and unsafe characters.
@@ -46,6 +58,7 @@ Centralized in `src/lib/files/config.ts`:
 - MIME allowlist and extension mapping
 - `maxFileSizeBytes`
 - `maxFilesPerUser`
+- image upload rate limits (`maxUploadsPerWindow`, `windowMs`)
 - shared format helpers (`formatFileSize`, `formatFileDate`, labels)
 
 This config is consumed by frontend and backend, so changing limits in one place updates the full flow.

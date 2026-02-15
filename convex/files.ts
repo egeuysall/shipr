@@ -4,7 +4,9 @@ import type { Id } from "./_generated/dataModel";
 import type { MutationCtx, QueryCtx } from "./_generated/server";
 import {
   ALLOWED_FILE_MIME_TYPES,
+  FILE_UPLOAD_RATE_LIMITS,
   FILE_STORAGE_LIMITS,
+  isImageMimeType,
 } from "../src/lib/files/config";
 
 const ALLOWED_MIME_TYPES = new Set<string>(ALLOWED_FILE_MIME_TYPES);
@@ -41,6 +43,45 @@ async function requireOwnedFile(ctx: FilesCtx, fileId: Id<"files">) {
   }
 
   return { user, file };
+}
+
+async function enforceImageUploadRateLimit(
+  ctx: MutationCtx,
+  userId: Id<"users">,
+) {
+  const { maxUploadsPerWindow, windowMs } = FILE_UPLOAD_RATE_LIMITS.image;
+
+  // Allow builders to disable by setting a non-positive limit/window in config.
+  if (maxUploadsPerWindow <= 0 || windowMs <= 0) {
+    return;
+  }
+
+  const windowStart = Date.now() - windowMs;
+  const userFiles = await ctx.db
+    .query("files")
+    .withIndex("by_user_id", (q) => q.eq("userId", userId))
+    .collect();
+
+  const recentImageUploads = userFiles.filter(
+    (file) =>
+      isImageMimeType(file.mimeType) && file._creationTime >= windowStart,
+  );
+
+  if (recentImageUploads.length < maxUploadsPerWindow) {
+    return;
+  }
+
+  const oldestRecentUpload = recentImageUploads.reduce(
+    (oldest, file) => Math.min(oldest, file._creationTime),
+    recentImageUploads[0]!._creationTime,
+  );
+  const retryAfterMs = Math.max(0, windowMs - (Date.now() - oldestRecentUpload));
+  const retryAfterSeconds = Math.max(1, Math.ceil(retryAfterMs / 1000));
+  const windowSeconds = Math.max(1, Math.round(windowMs / 1000));
+
+  throw new Error(
+    `Image upload rate limit reached: maximum ${maxUploadsPerWindow} image uploads per ${windowSeconds} seconds. Try again in ${retryAfterSeconds} seconds.`,
+  );
 }
 
 // Generate a short-lived upload URL (Step 1 of upload flow)
@@ -106,6 +147,16 @@ export const saveFile = mutation({
       throw new Error(
         `File type not allowed: ${actualMimeType}. Allowed types: ${Array.from(ALLOWED_MIME_TYPES).join(", ")}`,
       );
+    }
+
+    // Rate limit image uploads to reduce abuse; delete blob on reject.
+    if (isImageMimeType(actualMimeType)) {
+      try {
+        await enforceImageUploadRateLimit(ctx, user._id);
+      } catch (error) {
+        await ctx.storage.delete(args.storageId);
+        throw error;
+      }
     }
 
     // Sanitize file name: strip path separators and limit length

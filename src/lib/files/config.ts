@@ -68,6 +68,16 @@ export const FILE_TYPE_CATALOG = [
   },
 ] as const;
 
+function readNonNegativeIntEnv(name: string, fallback: number): number {
+  const value = process.env[name];
+  if (!value) return fallback;
+
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || parsed < 0) return fallback;
+
+  return Math.floor(parsed);
+}
+
 export const ALLOWED_FILE_MIME_TYPES = FILE_TYPE_CATALOG.map(
   (fileType) => fileType.mimeType,
 );
@@ -79,6 +89,16 @@ export const ACCEPTED_FILE_EXTENSIONS = FILE_TYPE_CATALOG.flatMap(
 export const FILE_STORAGE_LIMITS = {
   maxFileSizeBytes: 10 * 1024 * 1024,
   maxFilesPerUser: 100,
+} as const;
+
+export const FILE_UPLOAD_RATE_LIMITS = {
+  image: {
+    maxUploadsPerWindow: readNonNegativeIntEnv(
+      "FILE_IMAGE_UPLOAD_RATE_LIMIT_MAX_UPLOADS",
+      10,
+    ),
+    windowMs: readNonNegativeIntEnv("FILE_IMAGE_UPLOAD_RATE_LIMIT_WINDOW_MS", 60_000),
+  },
 } as const;
 
 const FILE_MIME_LABELS = Object.fromEntries(

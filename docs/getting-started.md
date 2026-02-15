@@ -109,6 +109,8 @@ See `.env.example` for the full list. Key ones:
 | `AI_CHAT_RATE_LIMIT_WINDOW_MS`           | Chat rate-limit window in ms (default: `60000`)                         |
 | `AI_CHAT_ENFORCE_LIFETIME_MESSAGE_LIMIT` | Enable/disable lifetime per-user message cap (default: `true`)          |
 | `AI_CHAT_LIFETIME_MESSAGE_LIMIT`         | Lifetime message cap when enabled (default: `1`)                        |
+| `FILE_IMAGE_UPLOAD_RATE_LIMIT_MAX_UPLOADS` | Max image uploads per user in each window (default: `10`)             |
+| `FILE_IMAGE_UPLOAD_RATE_LIMIT_WINDOW_MS` | Image upload rate-limit window in ms (default: `60000`)                 |
 | `RESEND_API_KEY`                         | Resend API key for transactional emails                                 |
 | `RESEND_FROM_EMAIL`                      | Sender address (optional, defaults to `onboarding@resend.dev`)          |
 | `NEXT_PUBLIC_POSTHOG_KEY`                | PostHog project API key                                                 |
