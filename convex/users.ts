@@ -1,6 +1,9 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 
+// Onboarding steps
+export type OnboardingStep = "welcome" | "profile" | "preferences" | "complete";
+
 // Get user by Clerk ID
 export const getUserByClerkId = query({
   args: { clerkId: v.string() },
@@ -107,5 +110,107 @@ export const deleteUser = mutation({
     if (user) {
       await ctx.db.delete(user._id);
     }
+  },
+});
+
+// Get onboarding status for the current user
+export const getOnboardingStatus = query({
+  args: {},
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      return null;
+    }
+
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
+      .first();
+
+    return {
+      completed: user?.onboardingCompleted ?? false,
+      currentStep: (user?.onboardingStep ?? "welcome") as OnboardingStep,
+    };
+  },
+});
+
+// Update onboarding step
+export const updateOnboardingStep = mutation({
+  args: {
+    step: v.union(
+      v.literal("welcome"),
+      v.literal("profile"),
+      v.literal("preferences"),
+      v.literal("complete"),
+    ),
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      throw new Error("Unauthorized: authentication required");
+    }
+
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
+      .first();
+
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    await ctx.db.patch(user._id, {
+      onboardingStep: args.step,
+    });
+  },
+});
+
+// Complete onboarding
+export const completeOnboarding = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      throw new Error("Unauthorized: authentication required");
+    }
+
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
+      .first();
+
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    await ctx.db.patch(user._id, {
+      onboardingCompleted: true,
+      onboardingStep: "complete",
+    });
+  },
+});
+
+// Reset onboarding (useful for testing or re-onboarding)
+export const resetOnboarding = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      throw new Error("Unauthorized: authentication required");
+    }
+
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
+      .first();
+
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    await ctx.db.patch(user._id, {
+      onboardingCompleted: false,
+      onboardingStep: "welcome",
+    });
   },
 });

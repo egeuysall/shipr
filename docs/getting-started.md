@@ -51,6 +51,7 @@ src/
 │   ├── api/
 │   │   ├── email/       # Send transactional emails via Resend
 │   │   └── health/      # Health check endpoint (rate-limited)
+│   ├── onboarding/      # Multi-step onboarding flow for new users
 │   ├── layout.tsx       # Root layout (providers, metadata, fonts)
 │   ├── not-found.tsx    # Custom 404 page
 │   ├── error.tsx        # App-level error boundary
@@ -66,9 +67,10 @@ src/
 │   ├── header.tsx       # Marketing header
 │   └── footer-1.tsx     # Marketing footer (includes theme toggle)
 ├── hooks/
-│   ├── use-mobile.ts    # Responsive breakpoint hook
-│   ├── use-sync-user.ts # Syncs Clerk user to Convex
-│   └── use-user-plan.ts # Reads current billing plan
+│   ├── use-mobile.ts      # Responsive breakpoint hook
+│   ├── use-onboarding.ts  # Check onboarding status & redirect logic
+│   ├── use-sync-user.ts   # Syncs Clerk user to Convex
+│   └── use-user-plan.ts   # Reads current billing plan
 ├── lib/
 │   ├── blog.ts          # Blog post data & helpers
 │   ├── constants.ts     # SEO, routes, structured data config
@@ -196,3 +198,37 @@ if (!result.success) {
 ```
 
 The route is Clerk-authenticated and rate-limited to 10 requests per minute.
+
+## Onboarding
+
+New users are automatically redirected to `/onboarding` on their first dashboard visit. The onboarding flow is a clean, multi-step process that:
+
+- Welcomes users and shows what to expect
+- Reviews their profile information from Clerk
+- Shows next steps and tips
+- Tracks completion state in Convex
+
+### How it works
+
+1. **Tracking**: The `onboardingCompleted` and `onboardingStep` fields in the Convex `users` table track progress.
+2. **Hook**: The `useOnboarding` hook checks status and redirects appropriately.
+3. **Auto-redirect**: The `DashboardShell` component calls `useOnboarding()` to enforce the flow.
+4. **Skip option**: Users can skip onboarding and come back later.
+
+### Customizing steps
+
+Edit `src/app/(dashboard)/onboarding/page.tsx` to add your own steps. The current steps are:
+
+1. **Welcome** - Introduction and overview
+2. **Profile** - Show user info from Clerk
+3. **Preferences** - Final step before completion
+
+Add new steps by:
+
+1. Adding the step to the `STEPS` array
+2. Adding a case to the `renderStep()` function
+3. Updating the `OnboardingStep` type in `convex/users.ts`
+
+### Reset onboarding
+
+For testing, you can reset a user's onboarding via the Convex dashboard or by calling the `resetOnboarding` mutation.

@@ -1,6 +1,7 @@
 "use client";
 
 import { useSyncUser } from "@/hooks/use-sync-user";
+import { useOnboarding } from "@/hooks/use-onboarding";
 import { AppSidebar } from "@/components/app-sidebar";
 import {
   SidebarProvider,
@@ -45,6 +46,7 @@ export function DashboardShell({
   children: React.ReactNode;
 }): React.ReactElement {
   useSyncUser();
+  useOnboarding();
   const pathname = usePathname();
   const breadcrumbs = getBreadcrumbsFromPathname(pathname);
 
