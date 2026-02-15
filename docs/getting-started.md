@@ -49,6 +49,7 @@ src/
 │   ├── (marketing)/     # Landing, features, pricing, about, docs, blog
 │   │   └── blog/        # Blog index + [slug] detail pages
 │   ├── api/
+│   │   ├── email/       # Send transactional emails via Resend
 │   │   └── health/      # Health check endpoint (rate-limited)
 │   ├── layout.tsx       # Root layout (providers, metadata, fonts)
 │   ├── not-found.tsx    # Custom 404 page
@@ -71,7 +72,7 @@ src/
 ├── lib/
 │   ├── blog.ts          # Blog post data & helpers
 │   ├── constants.ts     # SEO, routes, structured data config
-│   ├── emails/          # HTML email templates (welcome, plan-changed)
+│   ├── emails/          # Email templates + Resend send helper
 │   ├── rate-limit.ts    # In-memory sliding window rate limiter
 │   ├── structured-data.tsx  # JSON-LD components
 │   ├── sentry.ts        # Sentry helper wrappers
@@ -87,15 +88,17 @@ convex/
 
 See `.env.example` for the full list. Key ones:
 
-| Variable                        | Purpose                   |
-| ------------------------------- | ------------------------- |
-| `NEXT_PUBLIC_SITE_URL`          | Canonical site URL        |
-| `NEXT_PUBLIC_CLERK_*`           | Clerk auth config         |
-| `NEXT_PUBLIC_CONVEX_URL`        | Convex deployment URL     |
-| `CLERK_JWT_ISSUER_DOMAIN`       | Clerk JWT issuer (Convex) |
-| `NEXT_PUBLIC_POSTHOG_KEY`       | PostHog project API key   |
-| `NEXT_PUBLIC_POSTHOG_HOST`      | PostHog ingest host       |
-| `SENTRY_ORG` / `SENTRY_PROJECT` | Sentry source map uploads |
+| Variable                        | Purpose                                                        |
+| ------------------------------- | -------------------------------------------------------------- |
+| `NEXT_PUBLIC_SITE_URL`          | Canonical site URL                                             |
+| `NEXT_PUBLIC_CLERK_*`           | Clerk auth config                                              |
+| `NEXT_PUBLIC_CONVEX_URL`        | Convex deployment URL                                          |
+| `CLERK_JWT_ISSUER_DOMAIN`       | Clerk JWT issuer (Convex)                                      |
+| `RESEND_API_KEY`                | Resend API key for transactional emails                        |
+| `RESEND_FROM_EMAIL`             | Sender address (optional, defaults to `onboarding@resend.dev`) |
+| `NEXT_PUBLIC_POSTHOG_KEY`       | PostHog project API key                                        |
+| `NEXT_PUBLIC_POSTHOG_HOST`      | PostHog ingest host                                            |
+| `SENTRY_ORG` / `SENTRY_PROJECT` | Sentry source map uploads                                      |
 
 ## Scripts
 
@@ -113,7 +116,8 @@ Posts live in `src/lib/blog.ts` as a simple array, no MDX or CMS needed. Add a n
 
 ## API Routes
 
-A health check endpoint is available at `GET /api/health`. It returns uptime and a timestamp, and is rate-limited to 30 requests per minute per IP using the in-memory limiter from `src/lib/rate-limit.ts`.
+- `GET /api/health` - returns uptime and a timestamp, rate-limited to 30 req/min per IP.
+- `POST /api/email` - sends a transactional email to the authenticated user via Resend. Protected by Clerk auth and rate-limited to 10 req/min per IP. See the [Email (Resend)](#email-resend) section below.
 
 ## Rate Limiting
 
@@ -138,18 +142,57 @@ export async function GET(req: Request) {
 
 > **Note:** This is in-memory and resets on cold starts. For production multi-instance deployments, swap it with Upstash Redis or similar.
 
-## Email Templates
+## Email (Resend)
 
-HTML email templates live in `src/lib/emails/`. Each exports a function that returns ready-to-send HTML:
+Transactional emails are sent via [Resend](https://resend.com). Templates and the send helper live in `src/lib/emails/`.
+
+### Setup
+
+1. Create an account at [resend.com](https://resend.com) and grab your API key.
+2. Add the key to `.env`:
+   ```
+   RESEND_API_KEY=re_...
+   RESEND_FROM_EMAIL=hello@yourdomain.com
+   ```
+3. If you are testing locally without a verified domain, leave `RESEND_FROM_EMAIL` unset and Resend will use its sandbox sender (`onboarding@resend.dev`).
+
+### Templates
+
+Each template exports a function returning `{ subject, html }`:
 
 - `welcomeEmail({ name })` - welcome email for new sign-ups
 - `planChangedEmail({ name, previousPlan, newPlan })` - plan upgrade/downgrade notification
 
-Use them with any email provider (Resend, SendGrid, etc.):
+### Sending emails server-side
+
+Use the `sendEmail` helper in any server context (API routes, server actions):
 
 ```ts
-import { welcomeEmail } from "@/lib/emails";
+import { sendEmail, welcomeEmail } from "@/lib/emails";
 
 const { subject, html } = welcomeEmail({ name: "Ege" });
-// Pass subject + html to your email provider's send function
+const result = await sendEmail({ to: "ege@example.com", subject, html });
+
+if (!result.success) {
+  console.error("Email failed:", result.error);
+}
 ```
+
+### API route
+
+`POST /api/email` sends a template email to the currently authenticated user. It reads the user's email from Clerk, so the caller only provides the template and its data.
+
+```json
+{ "template": "welcome", "name": "Ege" }
+```
+
+```json
+{
+  "template": "plan-changed",
+  "name": "Ege",
+  "previousPlan": "free",
+  "newPlan": "pro"
+}
+```
+
+The route is Clerk-authenticated and rate-limited to 10 requests per minute.

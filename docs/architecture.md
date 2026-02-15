@@ -11,6 +11,7 @@
 | Analytics      | PostHog + Vercel Analytics |
 | Error Tracking | Sentry                     |
 | Payments       | Clerk Billing              |
+| Email          | Resend                     |
 
 ## Route Groups
 
@@ -22,6 +23,7 @@ src/app/
 ├── (marketing)/     # Landing, features, pricing, about, docs, blog
 │   └── blog/        # Blog index + [slug] detail pages
 ├── api/
+│   ├── email/       # Send transactional emails via Resend
 │   └── health/      # Health check endpoint (rate-limited)
 ├── layout.tsx       # Root layout - providers, fonts, metadata
 ├── not-found.tsx    # Custom 404 page
@@ -84,18 +86,32 @@ No separate billing table - plan is derived from Clerk's `has()` check and synce
 
 ## API Routes
 
+- `POST /api/email` - sends a transactional email to the authenticated user via Resend. Protected by Clerk auth and rate-limited to 10 req/min per IP. Accepts a JSON body with a `template` field (`"welcome"` or `"plan-changed"`) and the template's required data.
 - `GET /api/health` - returns `{ status, timestamp, uptime }`. Rate-limited to 30 req/min per IP via the in-memory sliding window limiter in `src/lib/rate-limit.ts`.
 
 ## Blog
 
 Posts are defined as a simple array in `src/lib/blog.ts`. No MDX or CMS - just add an object to `BLOG_POSTS` and the blog index + detail page + sitemap + JSON-LD are generated automatically.
 
-## Email Templates
+## Email (Resend)
 
-HTML email templates live in `src/lib/emails/`. Each exports a function returning raw HTML compatible with any email provider (Resend, SendGrid, etc.):
+Transactional emails are sent via [Resend](https://resend.com). Everything lives in `src/lib/emails/`:
 
-- `welcomeEmail({ name })` - new user welcome
-- `planChangedEmail({ name, previousPlan, newPlan })` - plan upgrade/downgrade
+- `send.ts` - `sendEmail()` helper that wraps the Resend SDK (lazily initialized)
+- `welcome.ts` - `welcomeEmail({ name })` returns `{ subject, html }`
+- `plan-changed.ts` - `planChangedEmail({ name, previousPlan, newPlan })` returns `{ subject, html }`
+- `index.ts` - barrel exports for all templates and the send helper
+
+Use `sendEmail()` in any server context (API routes, server actions):
+
+```ts
+import { sendEmail, welcomeEmail } from "@/lib/emails";
+
+const { subject, html } = welcomeEmail({ name: "Ege" });
+await sendEmail({ to: "ege@example.com", subject, html });
+```
+
+Requires `RESEND_API_KEY` in `.env`. Optionally set `RESEND_FROM_EMAIL` to override the default sender address.
 
 ## Rate Limiting
 
@@ -109,7 +125,9 @@ HTML email templates live in `src/lib/emails/`. Each exports a function returnin
 | `src/lib/structured-data.tsx`        | JSON-LD components for SEO          |
 | `src/lib/blog.ts`                    | Blog post data & helpers            |
 | `src/lib/rate-limit.ts`              | In-memory rate limiter              |
-| `src/lib/emails/`                    | HTML email templates                |
+| `src/lib/emails/send.ts`             | Resend sendEmail helper             |
+| `src/lib/emails/`                    | Email templates (welcome, plan)     |
+| `src/app/api/email/route.ts`         | Send email API route                |
 | `src/lib/sentry.ts`                  | Error tracking helpers              |
 | `src/lib/convex-client-provider.tsx` | Convex + Clerk integration          |
 | `src/hooks/use-sync-user.ts`         | Clerk to Convex user sync           |

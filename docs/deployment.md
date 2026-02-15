@@ -8,16 +8,18 @@ Copy `.env.example` to `.env` and fill in the values:
 cp .env.example .env
 ```
 
-| Variable                            | Description                                    | Required |
-| ----------------------------------- | ---------------------------------------------- | -------- |
-| `NEXT_PUBLIC_SITE_URL`              | Your production URL (e.g. `https://shipr.dev`) | Yes      |
-| `NEXT_PUBLIC_CONVEX_URL`            | Convex deployment URL                          | Yes      |
-| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk publishable key                          | Yes      |
-| `CLERK_SECRET_KEY`                  | Clerk secret key                               | Yes      |
-| `CLERK_JWT_ISSUER_DOMAIN`           | Clerk JWT issuer for Convex auth               | Yes      |
-| `NEXT_PUBLIC_POSTHOG_KEY`           | PostHog project API key                        | Optional |
-| `NEXT_PUBLIC_POSTHOG_HOST`          | PostHog ingest host                            | Optional |
-| `SENTRY_AUTH_TOKEN`                 | Sentry auth token for source maps              | Optional |
+| Variable                            | Description                                        | Required |
+| ----------------------------------- | -------------------------------------------------- | -------- |
+| `NEXT_PUBLIC_SITE_URL`              | Your production URL (e.g. `https://shipr.dev`)     | Yes      |
+| `NEXT_PUBLIC_CONVEX_URL`            | Convex deployment URL                              | Yes      |
+| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk publishable key                              | Yes      |
+| `CLERK_SECRET_KEY`                  | Clerk secret key                                   | Yes      |
+| `CLERK_JWT_ISSUER_DOMAIN`           | Clerk JWT issuer for Convex auth                   | Yes      |
+| `RESEND_API_KEY`                    | Resend API key for transactional emails            | Yes      |
+| `RESEND_FROM_EMAIL`                 | Sender address (defaults to onboarding@resend.dev) | Optional |
+| `NEXT_PUBLIC_POSTHOG_KEY`           | PostHog project API key                            | Optional |
+| `NEXT_PUBLIC_POSTHOG_HOST`          | PostHog ingest host                                | Optional |
+| `SENTRY_AUTH_TOKEN`                 | Sentry auth token for source maps                  | Optional |
 
 ## Vercel
 
@@ -54,6 +56,14 @@ Vercel should auto-detect these, but if not:
 2. Add `SENTRY_AUTH_TOKEN` to your environment
 3. Source maps are uploaded automatically during build via `@sentry/nextjs`
 4. Error tracking works out of the box - see `src/lib/sentry.ts` for helpers
+
+## Resend
+
+1. Create an account at [resend.com](https://resend.com)
+2. Add a verified domain (or use the sandbox sender for testing)
+3. Copy your API key and add `RESEND_API_KEY` to `.env`
+4. Optionally set `RESEND_FROM_EMAIL` to your verified sender address (e.g. `hello@yourdomain.com`)
+5. The `POST /api/email` route and the `sendEmail` helper in `src/lib/emails/send.ts` will use these values at runtime
 
 ## PostHog
 

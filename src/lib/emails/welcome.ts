@@ -14,7 +14,7 @@ export function welcomeEmail({ name }: WelcomeEmailProps): {
   subject: string;
   html: string;
 } {
-  const subject = `Welcome to ${SITE_CONFIG.name}!`;
+  const subject = `Welcome to ${SITE_CONFIG.name}`;
 
   const html = `
 <!DOCTYPE html>
@@ -24,56 +24,73 @@ export function welcomeEmail({ name }: WelcomeEmailProps): {
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>${subject}</title>
 </head>
-<body style="margin:0;padding:0;background-color:#f9fafb;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f9fafb;padding:40px 20px;">
+<body style="margin:0;padding:0;background-color:#ffffff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#ffffff;">
     <tr>
-      <td align="center">
-        <table width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;background-color:#ffffff;border-radius:12px;overflow:hidden;">
-          <!-- Header -->
+      <td align="center" style="padding:48px 24px;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;">
+
+          <!-- Logo / Brand -->
           <tr>
-            <td style="padding:32px 32px 0;text-align:center;">
-              <h1 style="margin:0;font-size:24px;font-weight:700;color:#09090b;">
-                Welcome to ${SITE_CONFIG.name}
-              </h1>
+            <td style="padding-bottom:32px;">
+              <h2 style="margin:0;font-size:20px;font-weight:600;color:#000000;letter-spacing:-0.01em;">
+                ${SITE_CONFIG.name}
+              </h2>
             </td>
           </tr>
 
-          <!-- Body -->
+          <!-- Divider -->
           <tr>
-            <td style="padding:24px 32px;">
-              <p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:#3f3f46;">
-                Hey ${name},
-              </p>
-              <p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:#3f3f46;">
-                Thanks for signing up. You now have access to all the core features on the Free plan.
-              </p>
-              <p style="margin:0 0 24px;font-size:15px;line-height:1.6;color:#3f3f46;">
-                Head to your dashboard to get started:
-              </p>
+            <td style="padding-bottom:32px;">
+              <div style="height:1px;background-color:#000000;"></div>
+            </td>
+          </tr>
 
-              <!-- CTA Button -->
-              <table width="100%" cellpadding="0" cellspacing="0">
-                <tr>
-                  <td align="center">
-                    <a href="${SITE_CONFIG.url}/dashboard"
-                       style="display:inline-block;padding:10px 24px;background-color:#09090b;color:#ffffff;text-decoration:none;border-radius:8px;font-size:14px;font-weight:600;">
-                      Go to Dashboard
-                    </a>
-                  </td>
-                </tr>
-              </table>
+          <!-- Main Content -->
+          <tr>
+            <td>
+              <h1 style="margin:0 0 16px 0;font-size:28px;font-weight:600;color:#000000;letter-spacing:-0.02em;line-height:1.2;">
+                Welcome
+              </h1>
+              <p style="margin:0 0 24px 0;font-size:16px;line-height:1.6;color:#000000;">
+                Hi ${name},
+              </p>
+              <p style="margin:0 0 24px 0;font-size:16px;line-height:1.6;color:#525252;">
+                Thanks for joining ${SITE_CONFIG.name}. Your account is ready and you have access to all Free plan features.
+              </p>
+              <p style="margin:0 0 32px 0;font-size:16px;line-height:1.6;color:#525252;">
+                Get started by exploring your dashboard.
+              </p>
+            </td>
+          </tr>
+
+          <!-- CTA Button -->
+          <tr>
+            <td style="padding-bottom:32px;">
+              <a href="${SITE_CONFIG.url}/dashboard"
+                 style="display:inline-block;padding:12px 24px;background-color:#000000;color:#ffffff;text-decoration:none;font-size:14px;font-weight:500;border-radius:6px;letter-spacing:-0.01em;">
+                Go to Dashboard →
+              </a>
+            </td>
+          </tr>
+
+          <!-- Divider -->
+          <tr>
+            <td style="padding-bottom:24px;">
+              <div style="height:1px;background-color:#e5e5e5;"></div>
             </td>
           </tr>
 
           <!-- Footer -->
           <tr>
-            <td style="padding:24px 32px;border-top:1px solid #e4e4e7;">
-              <p style="margin:0;font-size:12px;line-height:1.5;color:#a1a1aa;text-align:center;">
-                ${SITE_CONFIG.name} &middot;
-                <a href="${SITE_CONFIG.url}" style="color:#a1a1aa;">${SITE_CONFIG.url}</a>
+            <td>
+              <p style="margin:0;font-size:13px;line-height:1.5;color:#737373;">
+                ${SITE_CONFIG.name}<br/>
+                <a href="${SITE_CONFIG.url}" style="color:#737373;text-decoration:none;">${SITE_CONFIG.url.replace("https://", "")}</a>
               </p>
             </td>
           </tr>
+
         </table>
       </td>
     </tr>
