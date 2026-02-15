@@ -5,12 +5,12 @@ import { NextResponse } from "next/server";
 // Kept permissive enough for Clerk, Convex, PostHog, Sentry, and Vercel Analytics
 const cspDirectives = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://clerk.shipr.dev https://*.clerk.accounts.dev https://challenges.cloudflare.com https://us.i.posthog.com https://us-assets.i.posthog.com https://va.vercel-scripts.com",
+  "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://clerk.shipr.dev https://clerk.egeuysal.com https://*.clerk.accounts.dev https://challenges.cloudflare.com https://us.i.posthog.com https://us-assets.i.posthog.com https://va.vercel-scripts.com",
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' blob: data: https://img.clerk.com https://images.unsplash.com https://avatars.githubusercontent.com",
   "font-src 'self' data:",
-  "connect-src 'self' https://*.convex.cloud wss://*.convex.cloud https://clerk.shipr.dev https://*.clerk.accounts.dev https://us.i.posthog.com https://us-assets.i.posthog.com https://*.sentry.io https://va.vercel-scripts.com",
-  "frame-src 'self' https://clerk.shipr.dev https://*.clerk.accounts.dev https://challenges.cloudflare.com",
+  "connect-src 'self' https://*.convex.cloud wss://*.convex.cloud https://clerk.shipr.dev https://clerk.egeuysal.com https://*.clerk.accounts.dev https://us.i.posthog.com https://us-assets.i.posthog.com https://*.sentry.io https://va.vercel-scripts.com",
+  "frame-src 'self' https://clerk.shipr.dev https://clerk.egeuysal.com https://*.clerk.accounts.dev https://challenges.cloudflare.com",
   "worker-src 'self' blob:",
   "object-src 'none'",
   "base-uri 'self'",
