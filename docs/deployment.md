@@ -24,6 +24,12 @@ cp .env.example .env
 | `AI_CHAT_RATE_LIMIT_WINDOW_MS`           | Chat rate-limit window in milliseconds             | Optional |
 | `AI_CHAT_ENFORCE_LIFETIME_MESSAGE_LIMIT` | Enable/disable lifetime per-user message cap       | Optional |
 | `AI_CHAT_LIFETIME_MESSAGE_LIMIT`         | Lifetime message cap when enabled                  | Optional |
+| `AI_CHAT_HISTORY_ENABLED`                | Enable/disable Convex chat history persistence     | Optional |
+| `AI_CHAT_HISTORY_MAX_MESSAGE_LENGTH`     | Max chars per persisted chat message               | Optional |
+| `AI_CHAT_HISTORY_MAX_MESSAGES_PER_THREAD` | Max persisted chat messages per chat thread      | Optional |
+| `AI_CHAT_HISTORY_MAX_THREADS`            | Max chat threads per user                          | Optional |
+| `AI_CHAT_HISTORY_THREAD_TITLE_MAX_LENGTH` | Max chars for auto-generated chat titles         | Optional |
+| `AI_CHAT_HISTORY_QUERY_LIMIT`            | Max persisted messages returned to chat UI         | Optional |
 | `FILE_IMAGE_UPLOAD_RATE_LIMIT_MAX_UPLOADS` | Max image uploads per user in each window       | Optional |
 | `FILE_IMAGE_UPLOAD_RATE_LIMIT_WINDOW_MS` | Image upload rate-limit window in milliseconds     | Optional |
 | `RESEND_API_KEY`                         | Resend API key for transactional emails            | Yes      |

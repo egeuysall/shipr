@@ -1,9 +1,12 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useChat } from "@ai-sdk/react";
 import { UserAvatar } from "@clerk/nextjs";
+import type { Id } from "@convex/_generated/dataModel";
 import type { UIMessage } from "ai";
+import { useMutation, useQuery } from "convex/react";
+import { api } from "@convex/_generated/api";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { marked } from "marked";
@@ -19,6 +22,7 @@ import { Button } from "@/components/ui/button";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   ArrowRight01Icon,
+  CommentAdd01Icon,
   Loading03Icon,
   RoboticIcon,
 } from "@hugeicons/core-free-icons";
@@ -84,6 +88,18 @@ function renderMarkdownToHtml(markdown: string): string {
     breaks: true,
     renderer,
   }) as string;
+}
+
+function getMessageText(message: UIMessage): string {
+  return message.parts
+    .filter(
+      (part): part is Extract<UIMessage["parts"][number], { type: "text" }> => {
+        return part.type === "text";
+      },
+    )
+    .map((part) => part.text.trim())
+    .filter(Boolean)
+    .join("\n\n");
 }
 
 function getReadableChatErrorMessage(error: Error): string {
@@ -191,7 +207,7 @@ function MessageBubble({
         </div>
       ) : null}
 
-      <div className="max-w-[90%] space-y-2 break-words rounded-lg border border-border bg-background px-4 py-3 shadow-sm">
+      <div className="w-full xl:w-[60%] space-y-2 break-words rounded-lg border border-border bg-background px-4 py-3 shadow-sm lg:max-w-[95%]">
         {message.parts.map((part, index) =>
           renderMessagePart(message, part, index),
         )}
@@ -214,7 +230,20 @@ function MessageBubble({
 
 export default function ChatPage(): React.ReactElement {
   const [input, setInput] = useState("");
-  const { messages, sendMessage, status } = useChat({
+  const [threadSearch, setThreadSearch] = useState("");
+  const [activeThreadId, setActiveThreadId] =
+    useState<Id<"chatThreads"> | null>(null);
+  const [isCreatingThread, setIsCreatingThread] = useState(false);
+  const threads = useQuery(api.chat.listUserChatThreads);
+  const threadMessages = useQuery(
+    api.chat.getThreadMessages,
+    activeThreadId ? { threadId: activeThreadId } : "skip",
+  );
+  const saveChatMessage = useMutation(api.chat.saveUserChatMessage);
+  const createChatThread = useMutation(api.chat.createChatThread);
+  const persistedAssistantIdsRef = useRef<Set<string>>(new Set());
+  const hydratedThreadIdRef = useRef<Id<"chatThreads"> | null>(null);
+  const { messages, sendMessage, setMessages, status } = useChat({
     onError: (error) => {
       toast.error(getReadableChatErrorMessage(error));
     },
@@ -222,6 +251,61 @@ export default function ChatPage(): React.ReactElement {
   const messageContainerRef = useRef<HTMLDivElement>(null);
   const isSending = status === "submitted" || status === "streaming";
   const hasMessages = messages.length > 0;
+  const filteredThreads = useMemo(() => {
+    if (!threads) return [];
+
+    const normalizedQuery = threadSearch.trim().toLowerCase();
+    if (!normalizedQuery) return threads;
+
+    return threads.filter((thread) =>
+      thread.title.toLowerCase().includes(normalizedQuery),
+    );
+  }, [threadSearch, threads]);
+
+  useEffect(() => {
+    if (threads === undefined || activeThreadId) return;
+    if (threads.length > 0) {
+      setActiveThreadId(threads[0]._id);
+    }
+  }, [activeThreadId, threads]);
+
+  const persistMessage = useCallback(
+    async (
+      threadId: Id<"chatThreads">,
+      role: "user" | "assistant",
+      content: string,
+    ) => {
+      try {
+        await saveChatMessage({ threadId, role, content });
+      } catch {
+        toast.error("Failed to save chat history.");
+      }
+    },
+    [saveChatMessage],
+  );
+
+  useEffect(() => {
+    if (!activeThreadId || threadMessages === undefined) return;
+    if (hydratedThreadIdRef.current === activeThreadId) return;
+
+    const mappedMessages = threadMessages.map(
+      (entry) =>
+        ({
+          id: entry._id,
+          role: entry.role,
+          parts: [{ type: "text", text: entry.content }],
+        }) as UIMessage,
+    );
+
+    setMessages(mappedMessages);
+    persistedAssistantIdsRef.current.clear();
+    mappedMessages.forEach((message) => {
+      if (message.role === "assistant") {
+        persistedAssistantIdsRef.current.add(`${activeThreadId}:${message.id}`);
+      }
+    });
+    hydratedThreadIdRef.current = activeThreadId;
+  }, [activeThreadId, setMessages, threadMessages]);
 
   useEffect(() => {
     const element = messageContainerRef.current;
@@ -229,15 +313,64 @@ export default function ChatPage(): React.ReactElement {
     element.scrollTo({ top: element.scrollHeight, behavior: "smooth" });
   }, [messages, status]);
 
-  const submitMessage = (text: string): void => {
+  useEffect(() => {
+    if (
+      !activeThreadId ||
+      hydratedThreadIdRef.current !== activeThreadId ||
+      status !== "ready" ||
+      messages.length === 0
+    ) {
+      return;
+    }
+
+    const lastMessage = messages[messages.length - 1];
+    if (lastMessage.role !== "assistant") return;
+    const persistenceKey = `${activeThreadId}:${lastMessage.id}`;
+    if (persistedAssistantIdsRef.current.has(persistenceKey)) return;
+
+    const content = getMessageText(lastMessage);
+    if (!content) return;
+
+    persistedAssistantIdsRef.current.add(persistenceKey);
+    void persistMessage(activeThreadId, "assistant", content);
+  }, [activeThreadId, messages, persistMessage, status]);
+
+  const submitMessage = (threadId: Id<"chatThreads">, text: string): void => {
     const trimmed = text.trim();
     if (!trimmed) return;
+    void persistMessage(threadId, "user", trimmed);
     sendMessage({ text: trimmed });
     setInput("");
   };
 
+  const handleCreateThread =
+    useCallback(async (): Promise<Id<"chatThreads"> | null> => {
+      if (isCreatingThread) {
+        return null;
+      }
+
+      setIsCreatingThread(true);
+      try {
+        const threadId = await createChatThread({});
+        if (!threadId) {
+          toast.error("Chat history is disabled.");
+          return null;
+        }
+        setActiveThreadId(threadId);
+        setMessages([]);
+        persistedAssistantIdsRef.current.clear();
+        hydratedThreadIdRef.current = null;
+        return threadId;
+      } catch {
+        toast.error("Failed to create new chat.");
+        return null;
+      } finally {
+        setIsCreatingThread(false);
+      }
+    }, [createChatThread, isCreatingThread, setMessages]);
+
   return (
-    <div className="mx-auto flex w-full max-w-6xl flex-col space-y-6">
+    <div className="flex h-full min-h-0 w-full flex-col gap-6">
       <div className="space-y-1">
         <h1 className="text-3xl font-bold tracking-tight">Chat</h1>
         <p className="text-muted-foreground">
@@ -245,10 +378,76 @@ export default function ChatPage(): React.ReactElement {
         </p>
       </div>
 
-      <div className="grid gap-6">
-        <Card className="h-[clamp(30rem,74dvh,50rem)] overflow-hidden border-border/80 shadow-sm">
+      <div className="grid min-h-0 flex-1 gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
+        <Card className="flex h-full min-h-0 flex-col overflow-hidden border-border/80 shadow-sm">
+          <CardHeader className="border-b bg-muted/30">
+            <div className="flex items-center justify-between gap-2">
+              <CardTitle className="text-base">Chats</CardTitle>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => void handleCreateThread()}
+                disabled={isCreatingThread}
+              >
+                <HugeiconsIcon
+                  icon={CommentAdd01Icon}
+                  strokeWidth={2}
+                  className="h-4 w-4"
+                />
+                New
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent className="min-h-0 flex-1 p-2">
+            <div className="h-full space-y-1 overflow-y-auto">
+              <div className="mb-2">
+                <Input
+                  value={threadSearch}
+                  onChange={(event) => setThreadSearch(event.currentTarget.value)}
+                  placeholder="Search chats..."
+                  className="h-9"
+                />
+              </div>
+
+              {filteredThreads.length ? (
+                filteredThreads.map((thread) => (
+                  <button
+                    key={thread._id}
+                    type="button"
+                    onClick={() => {
+                      setActiveThreadId(thread._id);
+                      hydratedThreadIdRef.current = null;
+                    }}
+                    className={cn(
+                      "w-full rounded-md px-3 py-2 text-left text-sm transition-colors",
+                      activeThreadId === thread._id
+                        ? "bg-sidebar-accent"
+                        : "hover:bg-muted/50",
+                    )}
+                  >
+                    <p className="truncate font-medium">{thread.title}</p>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      {new Date(thread.lastMessageAt).toLocaleString()}
+                    </p>
+                  </button>
+                ))
+              ) : threadSearch.trim() ? (
+                <div className="rounded-md border border-dashed p-4 text-sm text-muted-foreground">
+                  No chats found for &quot;{threadSearch.trim()}&quot;.
+                </div>
+              ) : (
+                <div className="rounded-md border border-dashed p-4 text-sm text-muted-foreground">
+                  No chats yet. Start a new one.
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="flex h-full min-h-0 flex-col overflow-hidden border-border/80 shadow-sm">
           <CardHeader className="border-b bg-gradient-to-r from-muted/40 via-background to-muted/40">
-            <div className="flex items-start justify-between gap-3">
+            <div className="flex items-start gap-3">
               <div>
                 <CardTitle className="text-base">AI Assistant</CardTitle>
                 <CardDescription>
@@ -258,7 +457,7 @@ export default function ChatPage(): React.ReactElement {
             </div>
           </CardHeader>
 
-          <CardContent className="flex h-full min-h-0 flex-col gap-0 p-0">
+          <CardContent className="flex min-h-0 flex-1 flex-col gap-0 p-0">
             <div
               ref={messageContainerRef}
               className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain bg-gradient-to-b from-background to-muted/20 p-4"
@@ -290,7 +489,17 @@ export default function ChatPage(): React.ReactElement {
                 className="flex items-center gap-2"
                 onSubmit={(event) => {
                   event.preventDefault();
-                  submitMessage(input);
+                  if (activeThreadId) {
+                    submitMessage(activeThreadId, input);
+                    return;
+                  }
+
+                  void (async () => {
+                    const threadId = await handleCreateThread();
+                    if (threadId) {
+                      submitMessage(threadId, input);
+                    }
+                  })();
                 }}
               >
                 <Input
@@ -302,7 +511,9 @@ export default function ChatPage(): React.ReactElement {
                 <Button
                   type="submit"
                   size="lg"
-                  disabled={isSending || input.trim().length === 0}
+                  disabled={
+                    isSending || isCreatingThread || input.trim().length === 0
+                  }
                 >
                   {isSending ? (
                     <>
@@ -332,8 +543,20 @@ export default function ChatPage(): React.ReactElement {
                     key={prompt}
                     variant="outline"
                     size="sm"
-                    onClick={() => submitMessage(prompt)}
-                    disabled={isSending}
+                    onClick={() => {
+                      if (activeThreadId) {
+                        submitMessage(activeThreadId, prompt);
+                        return;
+                      }
+
+                      void (async () => {
+                        const threadId = await handleCreateThread();
+                        if (threadId) {
+                          submitMessage(threadId, prompt);
+                        }
+                      })();
+                    }}
+                    disabled={isSending || isCreatingThread}
                     className="max-w-full"
                   >
                     <span className="truncate">{prompt}</span>

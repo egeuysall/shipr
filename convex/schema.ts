@@ -25,4 +25,21 @@ export default defineSchema({
   })
     .index("by_user_id", ["userId"])
     .index("by_storage_id", ["storageId"]),
+
+  chatThreads: defineTable({
+    userId: v.id("users"),
+    title: v.string(),
+    lastMessageAt: v.number(),
+  })
+    .index("by_user_id", ["userId"])
+    .index("by_user_id_last_message", ["userId", "lastMessageAt"]),
+
+  chatMessages: defineTable({
+    userId: v.id("users"),
+    threadId: v.id("chatThreads"),
+    role: v.union(v.literal("user"), v.literal("assistant")),
+    content: v.string(),
+  })
+    .index("by_user_id", ["userId"])
+    .index("by_thread_id", ["threadId"]),
 });

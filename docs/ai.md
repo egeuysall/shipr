@@ -7,6 +7,7 @@ Shipr includes a production-ready chat module powered by Vercel AI SDK and the A
 - UI route: `/dashboard/chat`
 - API route: `POST /api/chat`
 - Server config: `src/lib/ai/chat-config.ts`
+- History config: `src/lib/ai/chat-history-config.ts`
 - Tool registry: `src/lib/ai/tools/registry.ts`
 
 ## Request Flow
@@ -33,6 +34,12 @@ Shipr includes a production-ready chat module powered by Vercel AI SDK and the A
 | `AI_CHAT_RATE_LIMIT_WINDOW_MS`           | Rate-limit window size                | `60000`                        |
 | `AI_CHAT_ENFORCE_LIFETIME_MESSAGE_LIMIT` | Enable one-time lifetime cap behavior | `true`                         |
 | `AI_CHAT_LIFETIME_MESSAGE_LIMIT`         | Lifetime message cap when enabled     | `1`                            |
+| `AI_CHAT_HISTORY_ENABLED`                | Enable Convex-backed chat history     | `true`                         |
+| `AI_CHAT_HISTORY_MAX_MESSAGE_LENGTH`     | Max chars per persisted message       | `8000`                         |
+| `AI_CHAT_HISTORY_MAX_MESSAGES_PER_THREAD` | Max persisted messages per chat thread | `120`                        |
+| `AI_CHAT_HISTORY_MAX_THREADS`            | Max chat threads per user             | `50`                           |
+| `AI_CHAT_HISTORY_THREAD_TITLE_MAX_LENGTH` | Max chars for auto-generated titles  | `80`                           |
+| `AI_CHAT_HISTORY_QUERY_LIMIT`            | Max messages returned to chat UI      | `200`                          |
 
 ## Error UX
 
