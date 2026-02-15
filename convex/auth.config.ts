@@ -9,7 +9,7 @@ const issuerDomains = (
   .map((domain) => domain.trim())
   .filter(Boolean);
 
-const applicationID = process.env.CLERK_JWT_APPLICATION_ID;
+const applicationID = process.env.CLERK_JWT_APPLICATION_ID || "convex";
 
 export default {
   providers: issuerDomains.map((domain) => ({
@@ -17,6 +17,6 @@ export default {
     // CLERK_JWT_ISSUER_DOMAIN=https://clerk.example.com
     // or CLERK_JWT_ISSUER_DOMAINS=https://old.example.com,https://new.example.com
     domain,
-    ...(applicationID ? { applicationID } : {}),
+    applicationID,
   })),
 } satisfies AuthConfig;
