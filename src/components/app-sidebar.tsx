@@ -19,6 +19,7 @@ import {
   DashboardSquare01Icon,
   User03Icon,
   RocketIcon,
+  FileAttachmentIcon,
 } from "@hugeicons/core-free-icons";
 
 const data = {
@@ -27,6 +28,11 @@ const data = {
       title: "Dashboard",
       url: "/dashboard",
       icon: <HugeiconsIcon icon={DashboardSquare01Icon} strokeWidth={2} />,
+    },
+    {
+      title: "Files",
+      url: "/dashboard/files",
+      icon: <HugeiconsIcon icon={FileAttachmentIcon} strokeWidth={2} />,
     },
   ],
   navSecondary: [
