@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useUser } from "@clerk/nextjs";
+import { UserAvatar, useUser } from "@clerk/nextjs";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@convex/_generated/api";
 import { toast } from "sonner";
@@ -14,13 +14,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
 import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  UserIcon,
-  Tick02Icon,
-  CheckmarkSquare02Icon,
-} from "@hugeicons/core-free-icons";
+import { Tick02Icon, CheckmarkSquare02Icon } from "@hugeicons/core-free-icons";
 import { Logo } from "@/components/logo";
 
 type Step = "welcome" | "profile" | "preferences" | "complete";
@@ -194,10 +191,12 @@ export default function OnboardingPage() {
           <Card className="border-none shadow-none">
             <CardHeader className="text-center space-y-4">
               <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
-                <HugeiconsIcon
-                  icon={UserIcon}
-                  strokeWidth={2}
-                  className="h-8 w-8"
+                <UserAvatar
+                  appearance={{
+                    elements: {
+                      userAvatarBox: "h-12! w-12!",
+                    },
+                  }}
                 />
               </div>
               <div className="space-y-2">
@@ -246,12 +245,12 @@ export default function OnboardingPage() {
       case "preferences":
         return (
           <Card className="border-none shadow-none">
-            <CardHeader className="text-center space-y-4">
+            <CardHeader className="text-center">
               <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
                 <HugeiconsIcon
                   icon={CheckmarkSquare02Icon}
                   strokeWidth={2}
-                  className="h-8 w-8"
+                  className="h-6 w-6"
                 />
               </div>
               <div className="space-y-2">
@@ -290,13 +289,16 @@ export default function OnboardingPage() {
 
               <div className="rounded-lg bg-muted/50 p-4 space-y-2">
                 <h4 className="text-sm font-medium">Before you continue</h4>
-                <label className="flex items-start gap-2 text-sm text-muted-foreground">
-                  <input
-                    type="checkbox"
+                <label
+                  htmlFor="onboarding-checklist"
+                  className="flex items-start gap-2 text-sm text-muted-foreground"
+                >
+                  <Checkbox
+                    id="onboarding-checklist"
                     className="mt-0.5"
                     checked={confirmedChecklist}
-                    onChange={(event) =>
-                      setConfirmedChecklist(event.currentTarget.checked)
+                    onCheckedChange={(checked) =>
+                      setConfirmedChecklist(checked === true)
                     }
                   />
                   <span>
@@ -353,7 +355,7 @@ export default function OnboardingPage() {
           {currentStep === "preferences" ? (
             <Button
               onClick={handleComplete}
-              disabled={isSubmitting || !selectedGoal || !confirmedChecklist}
+              disabled={isSubmitting || !confirmedChecklist}
             >
               {isSubmitting ? "Finishing..." : "Get Started"}
             </Button>

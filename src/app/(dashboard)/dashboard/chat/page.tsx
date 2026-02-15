@@ -182,7 +182,7 @@ function MessageBubble({
   return (
     <div className={cn("flex gap-3", isUser && "justify-end")}>
       {!isUser ? (
-        <div className="mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border bg-muted/50">
+        <div className="mt-2 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border bg-muted/50">
           <HugeiconsIcon
             icon={RoboticIcon}
             strokeWidth={2}
@@ -198,7 +198,7 @@ function MessageBubble({
       </div>
 
       {isUser ? (
-        <div className="mt-1 flex shrink-0 items-center justify-center rounded-full border bg-primary/10 p-0.5">
+        <div className="mt-1 flex shrink-0 items-center justify-center rounded-full">
           <UserAvatar
             appearance={{
               elements: {
