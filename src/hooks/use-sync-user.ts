@@ -5,6 +5,16 @@ import { useMutation, useQuery } from "convex/react";
 import { api } from "@convex/_generated/api";
 import { useEffect } from "react";
 
+/**
+ * Syncs the authenticated Clerk user to the Convex `users` table.
+ *
+ * Watches Clerk session data and writes changes to Convex whenever
+ * the user's email, name, avatar, or billing plan drifts from what's
+ * stored. Runs once on mount and re-syncs on any dependency change.
+ *
+ * @returns The Clerk `user` object, the matching Convex document (`convexUser`),
+ *          and an `isLoaded` flag that is `false` until Clerk finishes loading.
+ */
 export function useSyncUser() {
   const { user, isLoaded } = useUser();
   const { has } = useAuth();

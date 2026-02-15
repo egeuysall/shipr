@@ -1,5 +1,9 @@
 // Site-wide constants for SEO, branding, and configuration
 
+/**
+ * Core site configuration used across metadata, structured data, and UI.
+ * Update these values when branding or domain changes.
+ */
 export const SITE_CONFIG = {
   name: "Shipr",
   tagline: "Ship faster. Integrate smarter.",
@@ -17,8 +21,10 @@ export const SITE_CONFIG = {
   },
 } as const;
 
-// Metadata defaults & templates
-
+/**
+ * Metadata defaults used in the root layout's `metadata` export.
+ * `titleTemplate` injects the page title via `%s`.
+ */
 export const METADATA_DEFAULTS = {
   titleTemplate: `%s | ${SITE_CONFIG.name}`,
   titleDefault: `${SITE_CONFIG.name}: ${SITE_CONFIG.tagline}`,
@@ -26,8 +32,7 @@ export const METADATA_DEFAULTS = {
   titleMaxLength: 60,
 } as const;
 
-// OG Image defaults
-
+/** Default OpenGraph image dimensions and alt text. */
 export const OG_IMAGE_DEFAULTS = {
   width: 1200,
   height: 630,
@@ -35,8 +40,10 @@ export const OG_IMAGE_DEFAULTS = {
   alt: `${SITE_CONFIG.name}: ${SITE_CONFIG.tagline}`,
 } as const;
 
-// Route definitions for sitemap, robots, and navigation
-
+/**
+ * Centralised route map for the entire app.
+ * Referenced by sitemap, robots, navigation, and link components.
+ */
 export const ROUTES = {
   public: {
     home: "/",
@@ -44,6 +51,7 @@ export const ROUTES = {
     pricing: "/pricing",
     about: "/about",
     docs: "/docs",
+    blog: "/blog",
   },
   legal: {
     privacy: "/privacy",
@@ -59,7 +67,7 @@ export const ROUTES = {
   },
 } as const;
 
-/** Routes to include in sitemap.xml (public & legal only) */
+/** Routes included in `sitemap.xml` - public and legal pages only. */
 export const SITEMAP_ROUTES = [
   {
     path: ROUTES.public.home,
@@ -87,6 +95,11 @@ export const SITEMAP_ROUTES = [
     changeFrequency: "weekly" as const,
   },
   {
+    path: ROUTES.public.blog,
+    priority: 0.8,
+    changeFrequency: "weekly" as const,
+  },
+  {
     path: ROUTES.legal.privacy,
     priority: 0.3,
     changeFrequency: "yearly" as const,
@@ -103,7 +116,7 @@ export const SITEMAP_ROUTES = [
   },
 ] as const;
 
-/** Routes to disallow in robots.txt */
+/** Routes blocked in `robots.txt` - auth, API, and internal paths. */
 export const ROBOTS_DISALLOWED = [
   "/dashboard",
   "/dashboard/*",
@@ -116,8 +129,10 @@ export const ROBOTS_DISALLOWED = [
   "/ingest/*",
 ] as const;
 
-// SEO keyword targeting per page
-
+/**
+ * Per-page SEO metadata (title, description, keywords).
+ * Consumed by each route's `metadata` export.
+ */
 export const PAGE_SEO = {
   home: {
     title: "Shipr: Ship Faster. Integrate Smarter.",
@@ -195,8 +210,10 @@ export const PAGE_SEO = {
   },
 } as const;
 
-// Structured data constants
-
+/**
+ * JSON-LD structured data objects injected into `<head>`.
+ * Used by components in `src/lib/structured-data.tsx`.
+ */
 export const STRUCTURED_DATA = {
   organization: {
     "@type": "Organization" as const,

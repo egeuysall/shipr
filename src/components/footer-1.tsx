@@ -1,10 +1,12 @@
 import Link from "next/link";
 import { Logo } from "@/components/logo";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 const links = {
   product: [
     { label: "Features", href: "/features" },
     { label: "Pricing", href: "/pricing" },
+    { label: "Blog", href: "/blog" },
     { label: "Documentation", href: "/docs" },
   ],
   company: [
@@ -124,7 +126,7 @@ export default function Footer() {
           <p className="text-muted-foreground text-sm">
             &copy; {new Date().getFullYear()} Shipr. All rights reserved.
           </p>
-          <div className="flex gap-4">
+          <div className="flex items-center gap-4">
             {links.legal.map((link) => (
               <Link
                 key={link.label}
@@ -134,6 +136,7 @@ export default function Footer() {
                 {link.label}
               </Link>
             ))}
+            <ThemeToggle />
           </div>
         </div>
       </div>

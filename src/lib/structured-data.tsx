@@ -8,9 +8,12 @@ interface JsonLdProps {
 }
 
 /**
- * Renders a JSON-LD script tag with the given structured data.
- * Safe for server components: no dangerouslySetInnerHTML XSS risk
- * because we control the data and JSON.stringify escapes it.
+ * Renders a `<script type="application/ld+json">` tag with structured data.
+ *
+ * Safe for Server Components - no XSS risk because we control the data
+ * and `JSON.stringify` escapes all values.
+ *
+ * @param data - A plain object that will be merged with `@context: "https://schema.org"`.
  */
 function JsonLd({ data }: JsonLdProps): React.ReactElement {
   const jsonLd = {
@@ -26,14 +29,24 @@ function JsonLd({ data }: JsonLdProps): React.ReactElement {
   );
 }
 
+// ---------------------------------------------------------------------------
 // Pre-built structured data components
+// ---------------------------------------------------------------------------
 
-/** Organization schema: use in root layout */
+/**
+ * Organization schema - renders company info, logo, and social links.
+ *
+ * Place in the root layout `<head>` so every page inherits it.
+ */
 export function OrganizationJsonLd(): React.ReactElement {
   return <JsonLd data={STRUCTURED_DATA.organization} />;
 }
 
-/** WebSite schema with search action: use in root layout */
+/**
+ * WebSite schema - tells search engines the site name, URL, and publisher.
+ *
+ * Place in the root layout `<head>` alongside `OrganizationJsonLd`.
+ */
 export function WebSiteJsonLd(): React.ReactElement {
   return (
     <JsonLd
@@ -51,12 +64,16 @@ export function WebSiteJsonLd(): React.ReactElement {
   );
 }
 
-/** SoftwareApplication schema: use on home/pricing pages */
+/**
+ * SoftwareApplication schema - describes the app and its pricing offers.
+ *
+ * Use on the home page or pricing page to enable rich results in search.
+ */
 export function SoftwareApplicationJsonLd(): React.ReactElement {
   return <JsonLd data={STRUCTURED_DATA.softwareApplication} />;
 }
 
-/** Product schema for pricing page */
+/** A single pricing plan used by {@link ProductJsonLd}. */
 interface PricingPlan {
   name: string;
   price: string;
@@ -67,6 +84,13 @@ interface ProductJsonLdProps {
   plans: PricingPlan[];
 }
 
+/**
+ * Product schema with multiple pricing offers.
+ *
+ * Use on the pricing page to surface plan details in Google rich results.
+ *
+ * @param plans - Array of pricing plans to render as `Offer` entries.
+ */
 export function ProductJsonLd({
   plans,
 }: ProductJsonLdProps): React.ReactElement {
@@ -93,7 +117,7 @@ export function ProductJsonLd({
   );
 }
 
-/** FAQ schema: use on pages with FAQ sections */
+/** A single FAQ entry used by {@link FaqJsonLd}. */
 interface FaqItem {
   question: string;
   answer: string;
@@ -103,6 +127,11 @@ interface FaqJsonLdProps {
   items: FaqItem[];
 }
 
+/**
+ * FAQPage schema - generates rich FAQ snippets in search results.
+ *
+ * @param items - Array of question/answer pairs.
+ */
 export function FaqJsonLd({ items }: FaqJsonLdProps): React.ReactElement {
   return (
     <JsonLd
@@ -121,7 +150,7 @@ export function FaqJsonLd({ items }: FaqJsonLdProps): React.ReactElement {
   );
 }
 
-/** BreadcrumbList schema: use on nested pages */
+/** A single breadcrumb entry used by {@link BreadcrumbJsonLd}. */
 interface BreadcrumbItem {
   name: string;
   href: string;
@@ -131,6 +160,11 @@ interface BreadcrumbJsonLdProps {
   items: BreadcrumbItem[];
 }
 
+/**
+ * BreadcrumbList schema - helps search engines understand page hierarchy.
+ *
+ * @param items - Ordered array of breadcrumb links (home to current page).
+ */
 export function BreadcrumbJsonLd({
   items,
 }: BreadcrumbJsonLdProps): React.ReactElement {
@@ -149,7 +183,6 @@ export function BreadcrumbJsonLd({
   );
 }
 
-/** Article schema: use for blog posts */
 interface ArticleJsonLdProps {
   title: string;
   description: string;
@@ -160,6 +193,19 @@ interface ArticleJsonLdProps {
   imageUrl?: string;
 }
 
+/**
+ * Article schema - use on blog posts or content pages.
+ *
+ * Enables rich article snippets with author, date, and image in search.
+ *
+ * @param title - The article headline.
+ * @param description - A short summary of the article.
+ * @param publishedAt - ISO 8601 publish date.
+ * @param updatedAt - Optional ISO 8601 last-modified date.
+ * @param authorName - Author's display name.
+ * @param slug - URL slug (appended to `/blog/`).
+ * @param imageUrl - Optional hero image URL.
+ */
 export function ArticleJsonLd({
   title,
   description,

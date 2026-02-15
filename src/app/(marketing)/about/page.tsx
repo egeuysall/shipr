@@ -69,6 +69,7 @@ export default function AboutPage(): React.ReactElement {
           <Button
             render={<Link href="mailto:hi@egeuysal.com" />}
             nativeButton={false}
+            variant="secondary"
           >
             Contact Us
           </Button>
