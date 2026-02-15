@@ -2,6 +2,11 @@
 
 import { useCallback, useRef, useState } from "react";
 import { useFileUpload } from "@/hooks/use-file-upload";
+import {
+  ACCEPTED_FILE_EXTENSIONS,
+  FILE_STORAGE_LIMITS,
+  formatFileSize,
+} from "@/lib/files/config";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { HugeiconsIcon } from "@hugeicons/react";
@@ -12,9 +17,6 @@ import {
   Loading03Icon,
 } from "@hugeicons/core-free-icons";
 import { toast } from "sonner";
-
-const ACCEPTED_EXTENSIONS =
-  ".jpg,.jpeg,.png,.gif,.webp,.svg,.pdf,.txt,.csv,.json,.doc,.docx,.xls,.xlsx";
 
 interface FileUploadProps {
   /** Called after a successful upload */
@@ -128,11 +130,7 @@ export function FileUpload({ onUploadComplete }: FileUploadProps) {
     [reset],
   );
 
-  const formatFileSize = (bytes: number): string => {
-    if (bytes < 1024) return `${bytes} B`;
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-  };
+  const maxFileSizeLabel = formatFileSize(FILE_STORAGE_LIMITS.maxFileSizeBytes);
 
   const progressLabel: Record<typeof progress, string> = {
     idle: "",
@@ -177,7 +175,7 @@ export function FileUpload({ onUploadComplete }: FileUploadProps) {
                 : "Drag & drop files here, or click to browse"}
             </p>
             <p className="mt-1 text-xs text-muted-foreground">
-              Images, PDFs, documents, spreadsheets: up to 10 MB
+              Images, PDFs, documents, spreadsheets: up to {maxFileSizeLabel}
             </p>
           </div>
         </CardContent>
@@ -187,7 +185,7 @@ export function FileUpload({ onUploadComplete }: FileUploadProps) {
         ref={fileInputRef}
         type="file"
         className="hidden"
-        accept={ACCEPTED_EXTENSIONS}
+        accept={ACCEPTED_FILE_EXTENSIONS}
         multiple
         onChange={handleFileSelect}
         disabled={isUploading}

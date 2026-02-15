@@ -19,6 +19,8 @@ const DOC_ORDER: string[] = [
   "getting-started",
   "architecture",
   "authentication",
+  "ai",
+  "file-upload",
   "seo",
   "analytics",
   "deployment",

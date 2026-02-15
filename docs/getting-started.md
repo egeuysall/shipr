@@ -49,6 +49,7 @@ src/
 │   ├── (marketing)/     # Landing, features, pricing, about, docs, blog
 │   │   └── blog/        # Blog index + [slug] detail pages
 │   ├── api/
+│   │   ├── chat/        # Vercel AI SDK chat endpoint
 │   │   ├── email/       # Send transactional emails via Resend
 │   │   └── health/      # Health check endpoint (rate-limited)
 │   ├── onboarding/      # Multi-step onboarding flow for new users
@@ -75,6 +76,9 @@ src/
 │   ├── blog.ts          # Blog post data & helpers
 │   ├── constants.ts     # SEO, routes, structured data config
 │   ├── emails/          # Email templates + Resend send helper
+│   ├── files/           # Shared file upload limits/types/formatting config
+│   ├── ai/              # AI chat config (model, prompt, rate limits)
+│   │   └── tools/       # AI tool registry for chat
 │   ├── rate-limit.ts    # In-memory sliding window rate limiter
 │   ├── structured-data.tsx  # JSON-LD components
 │   ├── sentry.ts        # Sentry helper wrappers
@@ -90,17 +94,26 @@ convex/
 
 See `.env.example` for the full list. Key ones:
 
-| Variable                        | Purpose                                                        |
-| ------------------------------- | -------------------------------------------------------------- |
-| `NEXT_PUBLIC_SITE_URL`          | Canonical site URL                                             |
-| `NEXT_PUBLIC_CLERK_*`           | Clerk auth config                                              |
-| `NEXT_PUBLIC_CONVEX_URL`        | Convex deployment URL                                          |
-| `CLERK_JWT_ISSUER_DOMAIN`       | Clerk JWT issuer (Convex)                                      |
-| `RESEND_API_KEY`                | Resend API key for transactional emails                        |
-| `RESEND_FROM_EMAIL`             | Sender address (optional, defaults to `onboarding@resend.dev`) |
-| `NEXT_PUBLIC_POSTHOG_KEY`       | PostHog project API key                                        |
-| `NEXT_PUBLIC_POSTHOG_HOST`      | PostHog ingest host                                            |
-| `SENTRY_ORG` / `SENTRY_PROJECT` | Sentry source map uploads                                      |
+| Variable                                 | Purpose                                                                 |
+| ---------------------------------------- | ----------------------------------------------------------------------- |
+| `NEXT_PUBLIC_SITE_URL`                   | Canonical site URL                                                      |
+| `NEXT_PUBLIC_CLERK_*`                    | Clerk auth config                                                       |
+| `NEXT_PUBLIC_CONVEX_URL`                 | Convex deployment URL                                                   |
+| `CLERK_JWT_ISSUER_DOMAIN`                | Clerk JWT issuer (Convex)                                               |
+| `AI_GATEWAY_API_KEY`                     | Vercel AI Gateway key for `/api/chat`                                   |
+| `AI_CHAT_MODEL`                          | Model ID (default: `openai/gpt-4.1-mini`)                               |
+| `AI_CHAT_SYSTEM_PROMPT`                  | Base system prompt for assistant behavior                               |
+| `AI_CHAT_TOOLS`                          | Comma-separated enabled tools (default: `getCurrentDateTime,calculate`) |
+| `AI_CHAT_MAX_STEPS`                      | Max model steps/tool calls per response (default: `5`)                  |
+| `AI_CHAT_RATE_LIMIT_MAX_REQUESTS`        | Max chat requests per window per user/IP (default: `20`)                |
+| `AI_CHAT_RATE_LIMIT_WINDOW_MS`           | Chat rate-limit window in ms (default: `60000`)                         |
+| `AI_CHAT_ENFORCE_LIFETIME_MESSAGE_LIMIT` | Enable/disable lifetime per-user message cap (default: `true`)          |
+| `AI_CHAT_LIFETIME_MESSAGE_LIMIT`         | Lifetime message cap when enabled (default: `1`)                        |
+| `RESEND_API_KEY`                         | Resend API key for transactional emails                                 |
+| `RESEND_FROM_EMAIL`                      | Sender address (optional, defaults to `onboarding@resend.dev`)          |
+| `NEXT_PUBLIC_POSTHOG_KEY`                | PostHog project API key                                                 |
+| `NEXT_PUBLIC_POSTHOG_HOST`               | PostHog ingest host                                                     |
+| `SENTRY_ORG` / `SENTRY_PROJECT`          | Sentry source map uploads                                               |
 
 ## Scripts
 
@@ -119,7 +132,24 @@ Posts live in `src/lib/blog.ts` as a simple array, no MDX or CMS needed. Add a n
 ## API Routes
 
 - `GET /api/health` - returns uptime and a timestamp, rate-limited to 30 req/min per IP.
+- `POST /api/chat` - streams AI responses for `/dashboard/chat` via Vercel AI SDK, protected by Clerk auth and rate-limited.
 - `POST /api/email` - sends a transactional email to the authenticated user via Resend. Protected by Clerk auth and rate-limited to 10 req/min per IP. See the [Email (Resend)](#email-resend) section below.
+
+## AI Chat Tool Registry
+
+Chat tools are defined in `src/lib/ai/tools/registry.ts` and injected into `POST /api/chat`.
+
+- Add a new tool by defining it in `allChatTools`.
+- Enable/disable tools with `AI_CHAT_TOOLS` (comma-separated names).
+- Keep route logic unchanged while extending capabilities for builders.
+
+## File Module Config
+
+File constraints and formatting are centralized in `src/lib/files/config.ts`.
+
+- Set allowed MIME types/extensions in `FILE_TYPE_CATALOG`.
+- Set limits in `FILE_STORAGE_LIMITS` (`maxFileSizeBytes`, `maxFilesPerUser`).
+- Frontend upload UI, upload hook, and Convex file mutations all consume this config.
 
 ## Rate Limiting
 

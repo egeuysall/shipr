@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 import { useMutation, useQuery } from "convex/react";
@@ -24,8 +24,31 @@ import {
 import { Logo } from "@/components/logo";
 
 type Step = "welcome" | "profile" | "preferences" | "complete";
+type ActiveStep = Exclude<Step, "complete">;
+type BuilderGoal = "mvp" | "production" | "internal-tools";
 
-const STEPS: Step[] = ["welcome", "profile", "preferences", "complete"];
+const ONBOARDING_STEPS: ActiveStep[] = ["welcome", "profile", "preferences"];
+const BUILDER_GOALS: {
+  value: BuilderGoal;
+  title: string;
+  description: string;
+}[] = [
+  {
+    value: "mvp",
+    title: "Launch MVP",
+    description: "Ship your first customer-ready version quickly.",
+  },
+  {
+    value: "production",
+    title: "Scale Production",
+    description: "Harden flows for growth, billing, and reliability.",
+  },
+  {
+    value: "internal-tools",
+    title: "Internal SaaS Tools",
+    description: "Build secure back-office tools for your team.",
+  },
+];
 
 export default function OnboardingPage() {
   const router = useRouter();
@@ -34,20 +57,29 @@ export default function OnboardingPage() {
   const updateStep = useMutation(api.users.updateOnboardingStep);
   const completeOnboarding = useMutation(api.users.completeOnboarding);
 
-  const [currentStep, setCurrentStep] = useState<Step>(
-    (onboardingStatus?.currentStep as Step) ?? "welcome",
-  );
+  const [currentStep, setCurrentStep] = useState<Step>("welcome");
+  const [selectedGoal, setSelectedGoal] = useState<BuilderGoal | null>(null);
+  const [confirmedChecklist, setConfirmedChecklist] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const currentStepIndex = STEPS.indexOf(currentStep);
-  const progress = ((currentStepIndex + 1) / STEPS.length) * 100;
+  useEffect(() => {
+    if (!onboardingStatus) return;
+    setCurrentStep((onboardingStatus.currentStep as Step) ?? "welcome");
+  }, [onboardingStatus]);
+
+  const currentStepIndex = ONBOARDING_STEPS.indexOf(
+    (currentStep === "complete" ? "preferences" : currentStep) as ActiveStep,
+  );
+  const progress = ((currentStepIndex + 1) / ONBOARDING_STEPS.length) * 100;
 
   async function handleNext() {
+    if (currentStep === "complete") return;
+
     setIsSubmitting(true);
     try {
       const nextIndex = currentStepIndex + 1;
-      if (nextIndex < STEPS.length) {
-        const nextStep = STEPS[nextIndex];
+      if (nextIndex < ONBOARDING_STEPS.length) {
+        const nextStep = ONBOARDING_STEPS[nextIndex];
         await updateStep({ step: nextStep });
         setCurrentStep(nextStep);
       }
@@ -56,6 +88,28 @@ export default function OnboardingPage() {
         error instanceof Error
           ? error.message
           : "Could not update onboarding step";
+      toast.error(message);
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  async function handleBack() {
+    if (currentStep === "welcome" || currentStep === "complete") return;
+
+    setIsSubmitting(true);
+    try {
+      const previousIndex = currentStepIndex - 1;
+      if (previousIndex >= 0) {
+        const previousStep = ONBOARDING_STEPS[previousIndex];
+        await updateStep({ step: previousStep });
+        setCurrentStep(previousStep);
+      }
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Could not move to previous onboarding step";
       toast.error(message);
     } finally {
       setIsSubmitting(false);
@@ -73,21 +127,6 @@ export default function OnboardingPage() {
         error instanceof Error
           ? error.message
           : "Could not complete onboarding";
-      toast.error(message);
-    } finally {
-      setIsSubmitting(false);
-    }
-  }
-
-  async function handleSkip() {
-    setIsSubmitting(true);
-    try {
-      await completeOnboarding();
-      toast.success("Onboarding skipped");
-      router.push("/dashboard");
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "Could not skip onboarding";
       toast.error(message);
     } finally {
       setIsSubmitting(false);
@@ -143,6 +182,9 @@ export default function OnboardingPage() {
                   <span>Start building</span>
                 </div>
               </div>
+              <p className="text-xs text-center text-muted-foreground">
+                Onboarding is required once for all new accounts.
+              </p>
             </CardContent>
           </Card>
         );
@@ -220,22 +262,49 @@ export default function OnboardingPage() {
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="p-4 rounded-lg bg-muted/50 space-y-2">
-                <h4 className="text-sm font-medium">What&apos;s next?</h4>
-                <ul className="space-y-2 text-sm text-muted-foreground">
-                  <li className="flex items-center gap-2">
-                    <div className="h-1 w-1 rounded-full bg-current" />
-                    Explore your dashboard
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <div className="h-1 w-1 rounded-full bg-current" />
-                    Check out the docs
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <div className="h-1 w-1 rounded-full bg-current" />
-                    Invite team members
-                  </li>
-                </ul>
+              <div className="space-y-2">
+                <h4 className="text-sm font-medium">Primary goal</h4>
+                <div className="grid gap-2">
+                  {BUILDER_GOALS.map((goal) => {
+                    const isSelected = selectedGoal === goal.value;
+                    return (
+                      <button
+                        key={goal.value}
+                        type="button"
+                        onClick={() => setSelectedGoal(goal.value)}
+                        className={`rounded-lg border px-3 py-3 text-left transition-colors ${
+                          isSelected
+                            ? "border-primary bg-primary/5"
+                            : "border-border hover:bg-muted/40"
+                        }`}
+                      >
+                        <p className="text-sm font-medium">{goal.title}</p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {goal.description}
+                        </p>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="rounded-lg bg-muted/50 p-4 space-y-2">
+                <h4 className="text-sm font-medium">Before you continue</h4>
+                <label className="flex items-start gap-2 text-sm text-muted-foreground">
+                  <input
+                    type="checkbox"
+                    className="mt-0.5"
+                    checked={confirmedChecklist}
+                    onChange={(event) =>
+                      setConfirmedChecklist(event.currentTarget.checked)
+                    }
+                  />
+                  <span>
+                    I understand this starter is intended as a foundation and I
+                    should configure auth, billing, and AI limits for
+                    production.
+                  </span>
+                </label>
               </div>
             </CardContent>
           </Card>
@@ -260,7 +329,7 @@ export default function OnboardingPage() {
         <div className="space-y-2">
           <div className="flex items-center justify-between text-sm text-muted-foreground">
             <span>
-              Step {currentStepIndex + 1} of {STEPS.length}
+              Step {currentStepIndex + 1} of {ONBOARDING_STEPS.length}
             </span>
             <span>{Math.round(progress)}%</span>
           </div>
@@ -270,11 +339,22 @@ export default function OnboardingPage() {
         {renderStep()}
 
         <div className="flex items-center justify-between gap-4">
-          <Button variant="ghost" onClick={handleSkip} disabled={isSubmitting}>
-            Skip for now
-          </Button>
+          {currentStep === "welcome" ? (
+            <div />
+          ) : (
+            <Button
+              variant="ghost"
+              onClick={handleBack}
+              disabled={isSubmitting}
+            >
+              Back
+            </Button>
+          )}
           {currentStep === "preferences" ? (
-            <Button onClick={handleComplete} disabled={isSubmitting}>
+            <Button
+              onClick={handleComplete}
+              disabled={isSubmitting || !selectedGoal || !confirmedChecklist}
+            >
               {isSubmitting ? "Finishing..." : "Get Started"}
             </Button>
           ) : (

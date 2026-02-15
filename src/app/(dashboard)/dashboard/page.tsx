@@ -14,7 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
-  SparklesIcon,
+  ChatEdit01Icon,
   Mail01Icon,
   Calendar03Icon,
   CrownIcon,
@@ -137,7 +137,7 @@ export default function DashboardPage() {
           <CardHeader>
             <div className="flex items-center gap-2">
               <HugeiconsIcon
-                icon={SparklesIcon}
+                icon={ChatEdit01Icon}
                 strokeWidth={2}
                 className="h-5 w-5"
               />

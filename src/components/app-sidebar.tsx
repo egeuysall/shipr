@@ -19,6 +19,7 @@ import {
   DashboardSquare01Icon,
   User03Icon,
   FileAttachmentIcon,
+  ChatEdit01Icon,
 } from "@hugeicons/core-free-icons";
 import { Logo } from "@/components/logo";
 
@@ -33,6 +34,11 @@ const data = {
       title: "Files",
       url: "/dashboard/files",
       icon: <HugeiconsIcon icon={FileAttachmentIcon} strokeWidth={2} />,
+    },
+    {
+      title: "Chat",
+      url: "/dashboard/chat",
+      icon: <HugeiconsIcon icon={ChatEdit01Icon} strokeWidth={2} />,
     },
   ],
   navSecondary: [

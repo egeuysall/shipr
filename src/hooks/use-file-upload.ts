@@ -4,26 +4,12 @@ import { useState, useCallback } from "react";
 import { useMutation } from "convex/react";
 import { api } from "@convex/_generated/api";
 import type { Id } from "@convex/_generated/dataModel";
+import {
+  ALLOWED_FILE_MIME_TYPES,
+  FILE_STORAGE_LIMITS,
+} from "@/lib/files/config";
 
-/** Allowed MIME types for upload */
-const ALLOWED_TYPES = new Set([
-  "image/jpeg",
-  "image/png",
-  "image/gif",
-  "image/webp",
-  "image/svg+xml",
-  "application/pdf",
-  "text/plain",
-  "text/csv",
-  "application/json",
-  "application/msword",
-  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-  "application/vnd.ms-excel",
-  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-]);
-
-/** Maximum file size: 10 MB */
-const MAX_FILE_SIZE = 10 * 1024 * 1024;
+const DEFAULT_ALLOWED_TYPES = new Set<string>(ALLOWED_FILE_MIME_TYPES);
 
 interface UploadState {
   isUploading: boolean;
@@ -71,8 +57,8 @@ export function useFileUpload(
   options: UseFileUploadOptions = {},
 ): UseFileUploadReturn {
   const {
-    maxSize = MAX_FILE_SIZE,
-    allowedTypes = ALLOWED_TYPES,
+    maxSize = FILE_STORAGE_LIMITS.maxFileSizeBytes,
+    allowedTypes = DEFAULT_ALLOWED_TYPES,
     onSuccess,
     onError,
   } = options;

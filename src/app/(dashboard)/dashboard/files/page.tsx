@@ -5,6 +5,13 @@ import { api } from "@convex/_generated/api";
 import type { Id } from "@convex/_generated/dataModel";
 import { FileUpload } from "@/components/dashboard/file-upload";
 import {
+  FILE_STORAGE_LIMITS,
+  formatFileDate,
+  formatFileSize,
+  getFileTypeLabel,
+  isImageMimeType,
+} from "@/lib/files/config";
+import {
   Card,
   CardContent,
   CardDescription,
@@ -24,50 +31,6 @@ import {
 } from "@hugeicons/core-free-icons";
 import { useState, useCallback } from "react";
 import { toast } from "sonner";
-
-/** Map common MIME types to human-readable labels */
-function getFileTypeLabel(mimeType: string): string {
-  const map: Record<string, string> = {
-    "image/jpeg": "JPEG",
-    "image/png": "PNG",
-    "image/gif": "GIF",
-    "image/webp": "WebP",
-    "image/svg+xml": "SVG",
-    "application/pdf": "PDF",
-    "text/plain": "Text",
-    "text/csv": "CSV",
-    "application/json": "JSON",
-    "application/msword": "DOC",
-    "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
-      "DOCX",
-    "application/vnd.ms-excel": "XLS",
-    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": "XLSX",
-  };
-  return map[mimeType] ?? mimeType.split("/").pop()?.toUpperCase() ?? "FILE";
-}
-
-/** Format bytes into a human-readable string */
-function formatFileSize(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-}
-
-/** Check if a MIME type is an image */
-function isImageType(mimeType: string): boolean {
-  return mimeType.startsWith("image/");
-}
-
-/** Format a timestamp into a readable date */
-function formatDate(timestamp: number): string {
-  return new Date(timestamp).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  });
-}
 
 /** Loading skeleton for file list items */
 function FileItemSkeleton() {
@@ -162,7 +125,8 @@ export default function FilesPage() {
             Upload Files
           </CardTitle>
           <CardDescription>
-            Drag and drop or browse to upload files. Max 10 MB per file.
+            Drag and drop or browse to upload files. Max{" "}
+            {formatFileSize(FILE_STORAGE_LIMITS.maxFileSizeBytes)} per file.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -210,7 +174,7 @@ export default function FilesPage() {
             <div className="space-y-3">
               {files.map((file) => {
                 const isDeleting = deletingIds.has(file._id);
-                const isImage = isImageType(file.mimeType);
+                const isImage = isImageMimeType(file.mimeType);
 
                 return (
                   <div
@@ -250,7 +214,7 @@ export default function FilesPage() {
                           {formatFileSize(file.size)}
                         </span>
                         <span className="text-xs text-muted-foreground">
-                          {formatDate(file._creationTime)}
+                          {formatFileDate(file._creationTime)}
                         </span>
                       </div>
                     </div>

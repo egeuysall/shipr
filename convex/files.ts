@@ -1,57 +1,64 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import type { Id } from "./_generated/dataModel";
+import type { MutationCtx, QueryCtx } from "./_generated/server";
+import {
+  ALLOWED_FILE_MIME_TYPES,
+  FILE_STORAGE_LIMITS,
+} from "../src/lib/files/config";
 
-// Allowed MIME types for upload validation
-const ALLOWED_MIME_TYPES = [
-  "image/jpeg",
-  "image/png",
-  "image/gif",
-  "image/webp",
-  "image/svg+xml",
-  "application/pdf",
-  "text/plain",
-  "text/csv",
-  "application/json",
-  "application/msword",
-  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-  "application/vnd.ms-excel",
-  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-] as const;
+const ALLOWED_MIME_TYPES = new Set<string>(ALLOWED_FILE_MIME_TYPES);
+type FilesCtx = QueryCtx | MutationCtx;
 
-// Maximum file size: 10MB
-const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024;
+async function requireCurrentUser(ctx: FilesCtx) {
+  const identity = await ctx.auth.getUserIdentity();
+  if (!identity) {
+    throw new Error("Unauthorized: authentication required");
+  }
 
-// Maximum files per user
-const MAX_FILES_PER_USER = 100;
+  const user = await ctx.db
+    .query("users")
+    .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
+    .first();
+
+  if (!user) {
+    throw new Error("User not found");
+  }
+
+  return user;
+}
+
+async function requireOwnedFile(ctx: FilesCtx, fileId: Id<"files">) {
+  const user = await requireCurrentUser(ctx);
+  const file = await ctx.db.get(fileId);
+
+  if (!file) {
+    throw new Error("File not found");
+  }
+
+  if (file.userId !== user._id) {
+    throw new Error("Forbidden: you do not own this file");
+  }
+
+  return { user, file };
+}
 
 // Generate a short-lived upload URL (Step 1 of upload flow)
 // Requires authentication: only logged-in users can upload
 export const generateUploadUrl = mutation({
   args: {},
   handler: async (ctx): Promise<string> => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) {
-      throw new Error("Unauthorized: authentication required to upload files");
-    }
+    const user = await requireCurrentUser(ctx);
 
     // Check user file count limit
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
-      .first();
-
-    if (!user) {
-      throw new Error("User not found");
-    }
-
     const existingFiles = await ctx.db
       .query("files")
       .withIndex("by_user_id", (q) => q.eq("userId", user._id))
       .collect();
 
-    if (existingFiles.length >= MAX_FILES_PER_USER) {
+    if (existingFiles.length >= FILE_STORAGE_LIMITS.maxFilesPerUser) {
       throw new Error(
-        `File limit reached: maximum ${MAX_FILES_PER_USER} files per user`,
+        `File limit reached: maximum ${FILE_STORAGE_LIMITS.maxFilesPerUser} files per user`,
       );
     }
 
@@ -71,19 +78,7 @@ export const saveFile = mutation({
     size: v.number(),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) {
-      throw new Error("Unauthorized: authentication required");
-    }
-
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
-      .first();
-
-    if (!user) {
-      throw new Error("User not found");
-    }
+    const user = await requireCurrentUser(ctx);
 
     // SECURITY: Cross-validate against actual stored file metadata
     // This prevents client-side spoofing of file size and MIME type
@@ -97,23 +92,19 @@ export const saveFile = mutation({
     const actualMimeType = storedFile.contentType ?? args.mimeType;
 
     // Validate actual file size (not the client-provided one)
-    if (actualSize > MAX_FILE_SIZE_BYTES) {
+    if (actualSize > FILE_STORAGE_LIMITS.maxFileSizeBytes) {
       // Clean up the uploaded file since we're rejecting it
       await ctx.storage.delete(args.storageId);
       throw new Error(
-        `File too large: maximum size is ${MAX_FILE_SIZE_BYTES / (1024 * 1024)}MB`,
+        `File too large: maximum size is ${FILE_STORAGE_LIMITS.maxFileSizeBytes / (1024 * 1024)}MB`,
       );
     }
 
     // Validate actual MIME type (prefer storage contentType if available)
-    if (
-      !ALLOWED_MIME_TYPES.includes(
-        actualMimeType as (typeof ALLOWED_MIME_TYPES)[number],
-      )
-    ) {
+    if (!ALLOWED_MIME_TYPES.has(actualMimeType)) {
       await ctx.storage.delete(args.storageId);
       throw new Error(
-        `File type not allowed: ${actualMimeType}. Allowed types: ${ALLOWED_MIME_TYPES.join(", ")}`,
+        `File type not allowed: ${actualMimeType}. Allowed types: ${Array.from(ALLOWED_MIME_TYPES).join(", ")}`,
       );
     }
 
@@ -138,17 +129,10 @@ export const saveFile = mutation({
 export const getUserFiles = query({
   args: {},
   handler: async (ctx) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) {
-      return [];
-    }
-
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
-      .first();
-
-    if (!user) {
+    let user;
+    try {
+      user = await requireCurrentUser(ctx);
+    } catch {
       return [];
     }
 
@@ -172,29 +156,7 @@ export const getUserFiles = query({
 export const getFileUrl = query({
   args: { fileId: v.id("files") },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) {
-      throw new Error("Unauthorized: authentication required");
-    }
-
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
-      .first();
-
-    if (!user) {
-      throw new Error("User not found");
-    }
-
-    const file = await ctx.db.get(args.fileId);
-    if (!file) {
-      throw new Error("File not found");
-    }
-
-    // Ownership check: users can only access their own files
-    if (file.userId !== user._id) {
-      throw new Error("Forbidden: you do not own this file");
-    }
+    const { file } = await requireOwnedFile(ctx, args.fileId);
 
     const url = await ctx.storage.getUrl(file.storageId);
     return { ...file, url };
@@ -206,29 +168,7 @@ export const getFileUrl = query({
 export const deleteFile = mutation({
   args: { fileId: v.id("files") },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) {
-      throw new Error("Unauthorized: authentication required");
-    }
-
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
-      .first();
-
-    if (!user) {
-      throw new Error("User not found");
-    }
-
-    const file = await ctx.db.get(args.fileId);
-    if (!file) {
-      throw new Error("File not found");
-    }
-
-    // Ownership check: users can only delete their own files
-    if (file.userId !== user._id) {
-      throw new Error("Forbidden: you do not own this file");
-    }
+    const { file } = await requireOwnedFile(ctx, args.fileId);
 
     // Delete the blob from storage first, then the metadata
     await ctx.storage.delete(file.storageId);

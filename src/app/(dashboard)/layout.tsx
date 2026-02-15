@@ -6,6 +6,7 @@ export const metadata: Metadata = {
     default: "Dashboard",
     template: "%s | Shipr Dashboard",
   },
+  description: "Manage your Shipr workspace, files, and AI chat.",
   robots: {
     index: false,
     follow: false,

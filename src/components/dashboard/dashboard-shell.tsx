@@ -24,12 +24,22 @@ interface BreadcrumbData {
   current: string;
 }
 
-function getBreadcrumbsFromPathname(pathname: string): BreadcrumbData {
-  const segments = pathname.split("/").filter(Boolean);
+const DASHBOARD_ROUTE_LABELS: Record<string, string> = {
+  "/dashboard": "Dashboard",
+  "/dashboard/files": "Files",
+  "/dashboard/chat": "Chat",
+};
 
-  if (pathname === "/dashboard") {
-    return { parent: null, current: "Dashboard" };
+function getBreadcrumbsFromPathname(pathname: string): BreadcrumbData {
+  if (DASHBOARD_ROUTE_LABELS[pathname]) {
+    if (pathname === "/dashboard") {
+      return { parent: null, current: DASHBOARD_ROUTE_LABELS[pathname] };
+    }
+
+    return { parent: "Dashboard", current: DASHBOARD_ROUTE_LABELS[pathname] };
   }
+
+  const segments = pathname.split("/").filter(Boolean);
 
   const lastSegment = segments[segments.length - 1];
   const current = lastSegment

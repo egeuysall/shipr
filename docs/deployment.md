@@ -8,18 +8,27 @@ Copy `.env.example` to `.env` and fill in the values:
 cp .env.example .env
 ```
 
-| Variable                            | Description                                        | Required |
-| ----------------------------------- | -------------------------------------------------- | -------- |
-| `NEXT_PUBLIC_SITE_URL`              | Your production URL (e.g. `https://shipr.dev`)     | Yes      |
-| `NEXT_PUBLIC_CONVEX_URL`            | Convex deployment URL                              | Yes      |
-| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk publishable key                              | Yes      |
-| `CLERK_SECRET_KEY`                  | Clerk secret key                                   | Yes      |
-| `CLERK_JWT_ISSUER_DOMAIN`           | Clerk JWT issuer for Convex auth                   | Yes      |
-| `RESEND_API_KEY`                    | Resend API key for transactional emails            | Yes      |
-| `RESEND_FROM_EMAIL`                 | Sender address (defaults to onboarding@resend.dev) | Optional |
-| `NEXT_PUBLIC_POSTHOG_KEY`           | PostHog project API key                            | Optional |
-| `NEXT_PUBLIC_POSTHOG_HOST`          | PostHog ingest host                                | Optional |
-| `SENTRY_AUTH_TOKEN`                 | Sentry auth token for source maps                  | Optional |
+| Variable                                 | Description                                        | Required |
+| ---------------------------------------- | -------------------------------------------------- | -------- |
+| `NEXT_PUBLIC_SITE_URL`                   | Your production URL (e.g. `https://shipr.dev`)     | Yes      |
+| `NEXT_PUBLIC_CONVEX_URL`                 | Convex deployment URL                              | Yes      |
+| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`      | Clerk publishable key                              | Yes      |
+| `CLERK_SECRET_KEY`                       | Clerk secret key                                   | Yes      |
+| `CLERK_JWT_ISSUER_DOMAIN`                | Clerk JWT issuer for Convex auth                   | Yes      |
+| `AI_GATEWAY_API_KEY`                     | Vercel AI Gateway key for dashboard chat           | Yes      |
+| `AI_CHAT_MODEL`                          | Chat model ID (defaults to `openai/gpt-4.1-mini`)  | Optional |
+| `AI_CHAT_SYSTEM_PROMPT`                  | System prompt for chat assistant behavior          | Optional |
+| `AI_CHAT_TOOLS`                          | Enabled chat tool names, comma-separated           | Optional |
+| `AI_CHAT_MAX_STEPS`                      | Max model steps/tool calls per response            | Optional |
+| `AI_CHAT_RATE_LIMIT_MAX_REQUESTS`        | Max chat requests per rate-limit window            | Optional |
+| `AI_CHAT_RATE_LIMIT_WINDOW_MS`           | Chat rate-limit window in milliseconds             | Optional |
+| `AI_CHAT_ENFORCE_LIFETIME_MESSAGE_LIMIT` | Enable/disable lifetime per-user message cap       | Optional |
+| `AI_CHAT_LIFETIME_MESSAGE_LIMIT`         | Lifetime message cap when enabled                  | Optional |
+| `RESEND_API_KEY`                         | Resend API key for transactional emails            | Yes      |
+| `RESEND_FROM_EMAIL`                      | Sender address (defaults to onboarding@resend.dev) | Optional |
+| `NEXT_PUBLIC_POSTHOG_KEY`                | PostHog project API key                            | Optional |
+| `NEXT_PUBLIC_POSTHOG_HOST`               | PostHog ingest host                                | Optional |
+| `SENTRY_AUTH_TOKEN`                      | Sentry auth token for source maps                  | Optional |
 
 ## Vercel
 
