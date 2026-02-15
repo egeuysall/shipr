@@ -9,14 +9,23 @@ const issuerDomains = (
   .map((domain) => domain.trim())
   .filter(Boolean);
 
-const applicationID = process.env.CLERK_JWT_APPLICATION_ID || "convex";
+const applicationIDs = (
+  process.env.CLERK_JWT_APPLICATION_IDS ??
+  process.env.CLERK_JWT_APPLICATION_ID ??
+  "convex"
+)
+  .split(",")
+  .map((id) => id.trim())
+  .filter(Boolean);
 
 export default {
-  providers: issuerDomains.map((domain) => ({
-    // Supports single-domain and migration scenarios:
-    // CLERK_JWT_ISSUER_DOMAIN=https://clerk.example.com
-    // or CLERK_JWT_ISSUER_DOMAINS=https://old.example.com,https://new.example.com
-    domain,
-    applicationID,
-  })),
+  providers: issuerDomains.flatMap((domain) =>
+    applicationIDs.map((applicationID) => ({
+      // Supports migration scenarios:
+      // CLERK_JWT_ISSUER_DOMAINS=https://old.example.com,https://new.example.com
+      // CLERK_JWT_APPLICATION_IDS=convex,https://your-app.example.com
+      domain,
+      applicationID,
+    })),
+  ),
 } satisfies AuthConfig;
