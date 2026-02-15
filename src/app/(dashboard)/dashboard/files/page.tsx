@@ -23,6 +23,7 @@ import {
   FileAttachmentIcon,
 } from "@hugeicons/core-free-icons";
 import { useState, useCallback } from "react";
+import { toast } from "sonner";
 
 /** Map common MIME types to human-readable labels */
 function getFileTypeLabel(mimeType: string): string {
@@ -99,6 +100,11 @@ export default function FilesPage() {
       setDeletingIds((prev) => new Set(prev).add(fileId));
       try {
         await deleteFile({ fileId });
+        toast.success("File deleted");
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : "Could not delete file";
+        toast.error(message);
       } finally {
         setDeletingIds((prev) => {
           const next = new Set(prev);

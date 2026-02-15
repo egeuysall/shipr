@@ -11,6 +11,7 @@ import {
   Cancel01Icon,
   Loading03Icon,
 } from "@hugeicons/core-free-icons";
+import { toast } from "sonner";
 
 const ACCEPTED_EXTENSIONS =
   ".jpg,.jpeg,.png,.gif,.webp,.svg,.pdf,.txt,.csv,.json,.doc,.docx,.xls,.xlsx";
@@ -26,12 +27,38 @@ export function FileUpload({ onUploadComplete }: FileUploadProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { upload, uploadMultiple, isUploading, error, progress, reset } =
-    useFileUpload({
-      onSuccess: () => {
-        setSelectedFiles([]);
-        onUploadComplete?.();
-      },
-    });
+    useFileUpload();
+
+  const notifyUploadOutcome = useCallback(
+    (results: (string | null)[]): void => {
+      const successCount = results.filter((result) => result !== null).length;
+      const failedCount = results.length - successCount;
+
+      if (successCount === 0) {
+        toast.error("Upload failed");
+        return;
+      }
+
+      if (failedCount === 0) {
+        toast.success(
+          successCount === 1
+            ? "File uploaded"
+            : `${successCount} files uploaded`,
+        );
+      } else {
+        toast.error(
+          `${failedCount} upload${failedCount === 1 ? "" : "s"} failed`,
+        );
+        toast.success(
+          `${successCount} file${successCount === 1 ? "" : "s"} uploaded`,
+        );
+      }
+
+      setSelectedFiles([]);
+      onUploadComplete?.();
+    },
+    [onUploadComplete],
+  );
 
   const handleDragOver = useCallback(
     (e: React.DragEvent<HTMLDivElement>): void => {
@@ -61,12 +88,14 @@ export function FileUpload({ onUploadComplete }: FileUploadProps) {
       if (droppedFiles.length === 0) return;
 
       if (droppedFiles.length === 1) {
-        await upload(droppedFiles[0]);
+        const result = await upload(droppedFiles[0]);
+        notifyUploadOutcome([result]);
       } else {
-        await uploadMultiple(droppedFiles);
+        const results = await uploadMultiple(droppedFiles);
+        notifyUploadOutcome(results);
       }
     },
-    [upload, uploadMultiple],
+    [notifyUploadOutcome, upload, uploadMultiple],
   );
 
   const handleFileSelect = useCallback(
@@ -83,16 +112,21 @@ export function FileUpload({ onUploadComplete }: FileUploadProps) {
     if (selectedFiles.length === 0) return;
 
     if (selectedFiles.length === 1) {
-      await upload(selectedFiles[0]);
+      const result = await upload(selectedFiles[0]);
+      notifyUploadOutcome([result]);
     } else {
-      await uploadMultiple(selectedFiles);
+      const results = await uploadMultiple(selectedFiles);
+      notifyUploadOutcome(results);
     }
-  }, [selectedFiles, upload, uploadMultiple]);
+  }, [notifyUploadOutcome, selectedFiles, upload, uploadMultiple]);
 
-  const removeSelectedFile = useCallback((index: number): void => {
-    setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
-    reset();
-  }, [reset]);
+  const removeSelectedFile = useCallback(
+    (index: number): void => {
+      setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
+      reset();
+    },
+    [reset],
+  );
 
   const formatFileSize = (bytes: number): string => {
     if (bytes < 1024) return `${bytes} B`;
@@ -202,8 +236,13 @@ export function FileUpload({ onUploadComplete }: FileUploadProps) {
             </div>
           ))}
 
-          <Button onClick={handleUpload} disabled={isUploading} className="w-full">
-            Upload {selectedFiles.length} file{selectedFiles.length > 1 ? "s" : ""}
+          <Button
+            onClick={handleUpload}
+            disabled={isUploading}
+            className="w-full"
+          >
+            Upload {selectedFiles.length} file
+            {selectedFiles.length > 1 ? "s" : ""}
           </Button>
         </div>
       )}

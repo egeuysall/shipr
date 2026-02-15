@@ -1,23 +1,17 @@
 "use client";
 
-import { ClerkProvider } from "@clerk/nextjs";
+import { Waitlist } from "@clerk/nextjs";
 import { dark } from "@clerk/themes";
 import { useTheme } from "next-themes";
 
-export function ClerkProviderWrapper({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export function WaitlistClient(): React.ReactElement {
   const { resolvedTheme } = useTheme();
 
   return (
-    <ClerkProvider
+    <Waitlist
       appearance={{
         baseTheme: resolvedTheme === "dark" ? dark : undefined,
       }}
-    >
-      {children}
-    </ClerkProvider>
+    />
   );
 }

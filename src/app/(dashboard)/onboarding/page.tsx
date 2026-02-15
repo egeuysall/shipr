@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@convex/_generated/api";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -50,6 +51,12 @@ export default function OnboardingPage() {
         await updateStep({ step: nextStep });
         setCurrentStep(nextStep);
       }
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Could not update onboarding step";
+      toast.error(message);
     } finally {
       setIsSubmitting(false);
     }
@@ -59,15 +66,32 @@ export default function OnboardingPage() {
     setIsSubmitting(true);
     try {
       await completeOnboarding();
+      toast.success("Onboarding completed");
       router.push("/dashboard");
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Could not complete onboarding";
+      toast.error(message);
     } finally {
       setIsSubmitting(false);
     }
   }
 
   async function handleSkip() {
-    await completeOnboarding();
-    router.push("/dashboard");
+    setIsSubmitting(true);
+    try {
+      await completeOnboarding();
+      toast.success("Onboarding skipped");
+      router.push("/dashboard");
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Could not skip onboarding";
+      toast.error(message);
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   function renderStep() {

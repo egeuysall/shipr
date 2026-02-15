@@ -129,7 +129,8 @@ export async function POST(req: Request): Promise<NextResponse> {
   if (!isValidPayload(body)) {
     return NextResponse.json(
       {
-        error: "Invalid payload. Provide a valid template and its required fields.",
+        error:
+          "Invalid payload. Provide a valid template and its required fields.",
         supported_templates: SUPPORTED_TEMPLATES,
       },
       { status: 400, headers: rateLimitHeaders },
