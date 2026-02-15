@@ -221,11 +221,20 @@ export default function FilesPage() {
                   >
                     {/* Thumbnail or icon */}
                     <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded bg-muted">
-                      <HugeiconsIcon
-                        icon={isImage ? Image01Icon : File01Icon}
-                        strokeWidth={2}
-                        className="h-5 w-5 text-muted-foreground"
-                      />
+                      {isImage && file.url ? (
+                        <img
+                          src={file.url}
+                          alt={file.fileName}
+                          className="h-10 w-10 rounded object-cover"
+                          loading="lazy"
+                        />
+                      ) : (
+                        <HugeiconsIcon
+                          icon={isImage ? Image01Icon : File01Icon}
+                          strokeWidth={2}
+                          className="h-5 w-5 text-muted-foreground"
+                        />
+                      )}
                     </div>
 
                     {/* File info */}
