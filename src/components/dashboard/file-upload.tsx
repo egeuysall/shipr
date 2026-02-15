@@ -177,7 +177,7 @@ export function FileUpload({ onUploadComplete }: FileUploadProps) {
                 : "Drag & drop files here, or click to browse"}
             </p>
             <p className="mt-1 text-xs text-muted-foreground">
-              Images, PDFs, documents, spreadsheets — up to 10 MB
+              Images, PDFs, documents, spreadsheets: up to 10 MB
             </p>
           </div>
         </CardContent>

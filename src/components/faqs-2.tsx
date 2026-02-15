@@ -12,33 +12,33 @@ import Link from "next/link";
 const faqItems = [
   {
     id: "item-1",
-    question: "How does the free trial work?",
+    question: "What is included out of the box?",
     answer:
-      "Start with a 14-day free trial with full access to all features. No credit card required. You can upgrade to a paid plan at any time during or after the trial.",
+      "Shipr includes Next.js, Convex, Clerk, full auth and database connections, a production dashboard, documentation-ready structure, secure file uploads with shareable links, and prewired analytics.",
   },
   {
     id: "item-2",
-    question: "Can I change my plan later?",
+    question: "Does Shipr include analytics and product insights?",
     answer:
-      "Yes, you can upgrade or downgrade your plan at any time. Changes take effect immediately, and we'll prorate the difference.",
+      "Yes. PostHog, Vercel Analytics, and Vercel Speed Insights are integrated so you can track behavior and performance from day one.",
   },
   {
     id: "item-3",
-    question: "What payment methods do you accept?",
+    question: "Can I build AI features quickly?",
     answer:
-      "We accept all major credit cards, PayPal, and bank transfers for annual plans. Enterprise customers can also pay via invoice.",
+      "Yes. Shipr includes Vercel AI SDK support so you can implement chat, copilots, and AI workflows without wiring everything from scratch.",
   },
   {
     id: "item-4",
-    question: "Is there a setup fee?",
+    question: "How are security and file uploads handled?",
     answer:
-      "No, there are no setup fees or hidden costs. You only pay for your subscription plan.",
+      "Shipr follows strong security defaults and includes file uploads with shareable links, so you can ship user-facing file flows safely and quickly.",
   },
   {
     id: "item-5",
-    question: "Do you offer refunds?",
+    question: "Can I customize and scale after launch?",
     answer:
-      "We offer a 30-day money-back guarantee. If you're not satisfied, contact us within 30 days for a full refund.",
+      "Absolutely. You get a clean, extensible codebase that is ready to customize for your product and scale as usage grows.",
   },
 ];
 
@@ -50,12 +50,12 @@ export default function FAQs() {
           <div className="@xl:sticky @xl:top-24 @xl:w-64 shrink-0">
             <h2 className="text-3xl font-bold">FAQs</h2>
             <p className="text-muted-foreground mt-3 text-sm">
-              Your questions answered
+              Everything you need to know before launch
             </p>
             <p className="text-muted-foreground @xl:block mt-6 hidden text-sm">
               Need more help?{" "}
               <Link
-                href="/about"
+                href="mailto:hi@egeuysal.com"
                 className="text-primary font-medium hover:underline"
               >
                 Contact us
@@ -92,7 +92,7 @@ export default function FAQs() {
             <p className="text-muted-foreground @xl:hidden mt-6 text-sm">
               Need more help?{" "}
               <Link
-                href="/about"
+                href="mailto:hi@egeuysal.com"
                 className="text-primary font-medium hover:underline"
               >
                 Contact us

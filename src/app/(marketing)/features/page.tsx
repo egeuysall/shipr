@@ -23,10 +23,13 @@ export default function FeaturesPage(): React.ReactElement {
       />
       <div className="mx-auto max-w-2xl px-6">
         <div className="text-center">
-          <h1 className="text-balance text-4xl font-bold">Powerful Features</h1>
+          <h1 className="text-balance text-4xl font-bold">
+            Everything You Need to Ship This Weekend
+          </h1>
           <p className="text-muted-foreground mx-auto mt-4 max-w-2xl text-balance">
-            Everything you need to build, connect, and scale your integrations
-            with confidence.
+            Shipr gives you a complete SaaS foundation out of the box: Next.js,
+            Convex, Clerk, full auth and DB wiring, analytics, docs, dashboard,
+            secure uploads, and AI-ready building blocks.
           </p>
         </div>
       </div>

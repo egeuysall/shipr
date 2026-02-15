@@ -22,29 +22,29 @@ export const metadata: Metadata = {
 
 const faqItems = [
   {
-    question: "How does the free trial work?",
+    question: "What is included out of the box?",
     answer:
-      "Start with a 14-day free trial with full access to all features. No credit card required. You can upgrade to a paid plan at any time during or after the trial.",
+      "Shipr includes Next.js, Convex, Clerk, full auth and database connections, a production dashboard, documentation-ready structure, secure file uploads with shareable links, and prewired analytics.",
   },
   {
-    question: "Can I change my plan later?",
+    question: "Does Shipr include analytics and product insights?",
     answer:
-      "Yes, you can upgrade or downgrade your plan at any time. Changes take effect immediately, and we'll prorate the difference.",
+      "Yes. PostHog, Vercel Analytics, and Vercel Speed Insights are integrated so you can track behavior and performance from day one.",
   },
   {
-    question: "What payment methods do you accept?",
+    question: "Can I build AI features quickly?",
     answer:
-      "We accept all major credit cards, PayPal, and bank transfers for annual plans. Enterprise customers can also pay via invoice.",
+      "Yes. Shipr includes Vercel AI SDK support so you can implement chat, copilots, and AI workflows without wiring everything from scratch.",
   },
   {
-    question: "Is there a setup fee?",
+    question: "How are security and file uploads handled?",
     answer:
-      "No, there are no setup fees or hidden costs. You only pay for your subscription plan.",
+      "Shipr follows strong security defaults and includes file uploads with shareable links, so you can ship user-facing file flows safely and quickly.",
   },
   {
-    question: "Do you offer refunds?",
+    question: "Can I customize and scale after launch?",
     answer:
-      "We offer a 30-day money-back guarantee. If you're not satisfied, contact us within 30 days for a full refund.",
+      "Absolutely. You get a clean, extensible codebase that is ready to customize for your product and scale as usage grows.",
   },
 ];
 
@@ -61,7 +61,7 @@ export default function LandingPage(): React.ReactElement {
       <section className="pt-8 md:pt-12 [&_h2]:font-[family-name:var(--font-pixel-square)]">
         <div className="mx-auto max-w-7xl px-6">
           <h2 className="text-center text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-12">
-            Used by engineers at
+            Trusted by teams at leading companies
           </h2>
           <LogoCloud />
         </div>

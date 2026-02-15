@@ -4,7 +4,7 @@ import posthog from "posthog-js";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Tick01Icon } from "@hugeicons/core-free-icons";
+import { Tick02Icon } from "@hugeicons/core-free-icons";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
@@ -15,14 +15,14 @@ const plans = [
     price: "$0",
     period: "",
     badge: "Always free",
-    description: "Core features to get started, no commitment required.",
+    description: "Complete SaaS foundation to launch fast with no commitment.",
     features: [
-      "Basic core features",
-      "Limited usage quota",
-      "Community support",
-      "Standard performance",
+      "Next.js + Convex + Clerk stack",
+      "Full auth and DB connections",
+      "Dashboard, docs, and uploads",
+      "Vercel AI SDK ready",
     ],
-    buttonText: "Subscribe",
+    buttonText: "Start Free",
   },
   {
     name: "Pro",
@@ -30,12 +30,12 @@ const plans = [
     period: "/ month",
     originalPrice: "$15",
     badge: "Save $36 per year",
-    description: "Advanced tools, priority support, built for serious growth.",
+    description: "For teams scaling with higher usage, speed, and support.",
     features: [
-      "Higher usage",
+      "Higher usage limits",
+      "Faster processing",
       "Priority support",
       "Early access to new features",
-      "Faster processing",
     ],
     buttonText: "Start 7-day free trial",
     highlighted: true,
@@ -65,10 +65,11 @@ export default function Pricing() {
       <div className="mx-auto max-w-2xl px-6">
         <div className="text-center">
           <h2 className="text-balance text-4xl font-bold">
-            Simple, Transparent Pricing
+            Simple Pricing for Fast-Moving Teams
           </h2>
           <p className="text-muted-foreground mx-auto mt-4 max-w-md text-balance">
-            Start for free, upgrade as you grow. No hidden fees.
+            Start free, launch quickly, and upgrade when your product gets
+            traction.
           </p>
         </div>
         <div className="@xl:grid-cols-2 @xl:gap-3 mt-12 grid gap-6">
@@ -111,7 +112,7 @@ export default function Pricing() {
                     className="text-muted-foreground flex items-center gap-2 text-sm"
                   >
                     <HugeiconsIcon
-                      icon={Tick01Icon}
+                      icon={Tick02Icon}
                       strokeWidth={2}
                       className="text-primary size-4"
                     />

@@ -12,11 +12,11 @@ export default function CallToAction() {
       <div className="mx-auto max-w-2xl px-6">
         <div className="text-center">
           <h2 className="text-balance text-4xl font-medium">
-            Ready to Get Started?
+            Ready to Ship This Weekend?
           </h2>
           <p className="text-muted-foreground mx-auto mt-4 max-w-md text-balance">
-            Join thousands of teams already using our platform to build better
-            products faster.
+            Launch with full infrastructure already done, from auth and data to
+            analytics, uploads, and AI-ready flows.
           </p>
           <div className="mt-6 flex flex-wrap justify-center gap-3">
             <Button

@@ -35,11 +35,10 @@ export default function HeroSection() {
         <div className="relative z-10 mx-auto w-full max-w-5xl px-6">
           <div className="mx-auto max-w-md text-center">
             <h1 className="text-balance text-4xl font-medium sm:text-5xl">
-              Ship faster. Integrate smarter.
+              Ship Your SaaS This Weekend
             </h1>
             <p className="text-muted-foreground mt-4 text-balance">
-              Shipr is your all-in-one engine for adding seamless integrations
-              to your app.
+              The SaaS starter that gets you from zero to launch in 48 hours.
             </p>
 
             <Button

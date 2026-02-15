@@ -7,8 +7,9 @@ export default function Testimonials() {
         <div className="relative pl-6">
           <div className="bg-primary absolute inset-0 w-0.5 rounded-full"></div>
           <p className="text-foreground text-balance text-xl">
-            Shipr has been a game-changer for our team. It has helped us to
-            build a modern and scalable web application.
+            We built Shipr so founders can ship this weekend with full infra
+            already done: auth, DB, analytics, dashboard, uploads, and AI-ready
+            foundations.
           </p>
 
           <div className="mt-8 flex items-center gap-3">

@@ -17,10 +17,12 @@ export default function Integrations() {
       <div className="mx-auto max-w-2xl px-6">
         <IntegrationsIllustration />
         <div className="mx-auto mt-12 max-w-md text-balance text-center">
-          <h2 className="text-4xl font-medium">Connect Your Favorite Tools</h2>
+          <h2 className="text-4xl font-medium">
+            Your Core Stack, Already Connected
+          </h2>
           <p className="text-muted-foreground mb-6 mt-4">
-            Seamlessly integrate with the services you already use. Set up in
-            minutes, not days.
+            Shipr comes prewired with auth, data, analytics, and AI foundations
+            so you can launch fast instead of spending days on setup.
           </p>
           <Button
             variant="secondary"
@@ -29,7 +31,7 @@ export default function Integrations() {
             render={<Link href="/features" />}
             nativeButton={false}
           >
-            Learn more
+            See the full stack
             <HugeiconsIcon
               icon={ArrowRight01Icon}
               strokeWidth={2}

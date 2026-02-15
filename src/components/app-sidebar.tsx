@@ -18,9 +18,9 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import {
   DashboardSquare01Icon,
   User03Icon,
-  RocketIcon,
   FileAttachmentIcon,
 } from "@hugeicons/core-free-icons";
+import { Logo } from "@/components/logo";
 
 const data = {
   navMain: [
@@ -57,16 +57,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" render={<a href="/dashboard" />}>
               <div className="flex aspect-square size-8 items-center justify-center rounded-lg border border-sidebar-border bg-background">
-                <HugeiconsIcon
-                  icon={RocketIcon}
-                  strokeWidth={2}
-                  className="size-4"
-                />
+                <Logo />
               </div>
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-semibold">Shipr</span>
                 <span className="truncate text-xs text-muted-foreground">
-                  AI SaaS Platform
+                  Clone. Build. Ship.
                 </span>
               </div>
             </SidebarMenuButton>

@@ -30,12 +30,12 @@ export default function Footer() {
               <Logo className="h-5 w-fit" />
             </Link>
             <p className="text-muted-foreground mt-4 max-w-xs text-sm">
-              Building the future of integrations. Connect your tools, automate
-              your workflow.
+              Production-ready foundation for your next SaaS. Clone, customize,
+              and launch faster than ever.
             </p>
             <div className="mt-4 flex gap-4">
               <a
-                href="https://github.com/egeuysall"
+                href="https://github.com/egeuysall/shipr"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-muted-foreground hover:text-foreground transition-colors"

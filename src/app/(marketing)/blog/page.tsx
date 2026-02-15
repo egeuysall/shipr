@@ -8,7 +8,7 @@ import { BreadcrumbJsonLd } from "@/lib/structured-data";
 export const metadata: Metadata = {
   title: "Blog: Guides & Insights",
   description:
-    "Practical guides, tutorials, and insights on shipping SaaS products fast with modern tools.",
+    "Practical playbooks on launching SaaS fast with Next.js, Convex, Clerk, analytics, and AI-ready workflows.",
   alternates: {
     canonical: `${SITE_CONFIG.url}/blog`,
   },
@@ -27,9 +27,12 @@ export default function BlogPage(): React.ReactElement {
       />
       <div className="mx-auto max-w-2xl px-6">
         <div className="text-center">
-          <h1 className="text-balance text-4xl font-bold">Blog</h1>
+          <h1 className="text-balance text-4xl font-bold">
+            Shipr Build Logs & Launch Guides
+          </h1>
           <p className="text-muted-foreground mx-auto mt-4 max-w-md text-balance">
-            Guides and insights on shipping fast.
+            Tactics, guides, and lessons for shipping a production SaaS in days,
+            not months.
           </p>
         </div>
 

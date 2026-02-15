@@ -32,11 +32,12 @@ export default function Features() {
         <div>
           <div>
             <h2 className="text-balance text-4xl font-medium">
-              Powerful Features for Modern Teams
+              Full SaaS Infrastructure, Ready to Ship
             </h2>
             <p className="text-muted-foreground mb-6 mt-4 text-balance">
-              Everything you need to build, connect, and scale your integrations
-              effortlessly.
+              Launch on a production-ready stack with Next.js, Convex, Clerk,
+              full auth and database connections, analytics, docs, and a full
+              dashboard already in place.
             </p>
             <Button
               variant="secondary"
@@ -45,7 +46,7 @@ export default function Features() {
               render={<Link href="/features" />}
               nativeButton={false}
             >
-              Get started
+              Explore features
               <HugeiconsIcon
                 icon={ArrowRight01Icon}
                 strokeWidth={2}

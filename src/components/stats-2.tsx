@@ -6,32 +6,38 @@ export default function Stats() {
       <div className="mx-auto max-w-2xl px-6">
         <div className="space-y-4">
           <h2 className="text-balance text-4xl font-medium">
-            Trusted by Teams Worldwide
+            Production Infrastructure Out of the Box
           </h2>
           <p className="text-muted-foreground text-balance">
-            Our platform delivers measurable results that help businesses scale
-            faster and work smarter.
+            Everything needed to launch a serious SaaS is already included, so
+            your team can focus on product and growth.
           </p>
         </div>
         <div className="@xl:grid-cols-3 mt-12 grid grid-cols-2 gap-6 text-sm">
           <div className="border-y py-6">
             <p className="text-muted-foreground text-xl">
-              <span className="text-foreground font-medium">99.9%</span> Uptime
-              guarantee.
+              <span className="text-foreground font-medium">
+                Next.js + Convex + Clerk
+              </span>{" "}
+              from day one.
             </p>
           </div>
 
           <div className="border-y py-6">
             <p className="text-muted-foreground text-xl">
-              <span className="text-foreground font-medium">10M+</span> API
-              requests processed daily.
+              <span className="text-foreground font-medium">
+                PostHog + Vercel Analytics
+              </span>{" "}
+              prewired.
             </p>
           </div>
 
           <div className="border-y py-6">
             <p className="text-muted-foreground text-xl">
-              <span className="text-foreground font-medium">500+</span>{" "}
-              Enterprise customers.
+              <span className="text-foreground font-medium">
+                Vercel AI SDK included
+              </span>{" "}
+              for instant AI features.
             </p>
           </div>
         </div>

@@ -25,7 +25,7 @@ const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024;
 const MAX_FILES_PER_USER = 100;
 
 // Generate a short-lived upload URL (Step 1 of upload flow)
-// Requires authentication — only logged-in users can upload
+// Requires authentication: only logged-in users can upload
 export const generateUploadUrl = mutation({
   args: {},
   handler: async (ctx): Promise<string> => {
@@ -89,7 +89,7 @@ export const saveFile = mutation({
     // This prevents client-side spoofing of file size and MIME type
     const storedFile = await ctx.db.system.get(args.storageId);
     if (!storedFile) {
-      throw new Error("Storage ID not found — file may not have been uploaded");
+      throw new Error("Storage ID not found: file may not have been uploaded");
     }
 
     // Use ACTUAL size from storage, not client-provided size
@@ -117,7 +117,7 @@ export const saveFile = mutation({
       );
     }
 
-    // Sanitize file name — strip path separators and limit length
+    // Sanitize file name: strip path separators and limit length
     const sanitizedName = args.fileName
       .replace(/[/\\]/g, "_")
       .replace(/[<>:"|?*]/g, "_")
