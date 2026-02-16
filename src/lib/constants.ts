@@ -6,9 +6,9 @@
  */
 export const SITE_CONFIG = {
   name: "Shipr",
-  tagline: "Ship faster. Integrate smarter.",
+  tagline: "Ship Your SaaS This Weekend.",
   description:
-    "Shipr is your all-in-one engine for adding seamless integrations to your app. Production-ready SaaS starter with auth, billing, and beautiful UI.",
+    "Shipr is a free, open-source SaaS starter that helps you go from zero to launch in 48 hours with Next.js, Convex, Clerk, auth, database wiring, analytics, docs, dashboard, secure uploads, and AI-ready foundations.",
   url: process.env.NEXT_PUBLIC_SITE_URL || "https://shipr.dev",
   locale: "en_US",
   language: "en",
@@ -135,33 +135,33 @@ export const ROBOTS_DISALLOWED = [
  */
 export const PAGE_SEO = {
   home: {
-    title: "Shipr: Ship Faster. Integrate Smarter.",
+    title: "Shipr: Ship Your SaaS This Weekend",
     description:
-      "Build and ship your SaaS in days, not weeks. Shipr is a production-ready starter with auth, billing, integrations, and beautiful UI built on Next.js, Clerk, and Convex.",
+      "Launch your SaaS in 48 hours with Shipr. Get a production-ready Next.js starter with Convex, Clerk, auth, database wiring, analytics, docs, dashboard, secure uploads, and AI-ready building blocks.",
     keywords: [
       "SaaS starter kit",
       "Next.js boilerplate",
       "SaaS template",
-      "ship faster",
-      "integration platform",
+      "launch SaaS fast",
+      "Next.js Convex Clerk starter",
     ],
   },
   features: {
-    title: "Features: Powerful Tools to Build & Scale",
+    title: "Features: Complete SaaS Infrastructure Out of the Box",
     description:
-      "Explore Shipr's powerful features: seamless integrations, authentication, billing, analytics, and more. Everything you need to build, connect, and scale.",
+      "Explore Shipr's complete SaaS stack: Next.js, Convex, Clerk, full auth and DB setup, analytics, docs, dashboard, secure file uploads, and AI-ready foundations.",
     keywords: [
       "SaaS features",
-      "integration tools",
-      "developer tools",
-      "API integrations",
-      "workflow automation",
+      "SaaS infrastructure",
+      "Next.js starter features",
+      "auth and database starter",
+      "AI-ready SaaS template",
     ],
   },
   pricing: {
     title: "Pricing: Simple, Transparent Plans",
     description:
-      "Start for free, upgrade as you grow. Shipr offers simple, transparent pricing with no hidden fees. Free and Pro plans available.",
+      "Start free and upgrade when you are ready. Shipr offers transparent pricing for teams that want to launch quickly and scale with confidence.",
     keywords: [
       "SaaS pricing",
       "free plan",
@@ -171,26 +171,26 @@ export const PAGE_SEO = {
     ],
   },
   about: {
-    title: "About: Our Mission & Story",
+    title: "About Shipr: Built to Help You Launch Faster",
     description:
-      "Learn about Shipr's mission to make integrations effortless. We're building the future of connecting tools so teams can focus on shipping great products.",
+      "Learn why Shipr was built: to remove SaaS boilerplate and help founders and teams launch production-ready products in a weekend.",
     keywords: [
       "about Shipr",
       "our mission",
-      "integration platform company",
-      "developer tools company",
+      "open-source SaaS starter",
+      "launch SaaS faster",
     ],
   },
   docs: {
-    title: "Documentation: Guides, APIs & Tutorials",
+    title: "Documentation: Build with Shipr",
     description:
-      "Get started with Shipr in minutes. Explore guides, API references, SDK documentation, and step-by-step integration tutorials.",
+      "Get started with Shipr quickly. Explore setup guides, usage docs, and practical references to build and ship your SaaS product.",
     keywords: [
       "Shipr documentation",
-      "API reference",
-      "integration guides",
-      "developer docs",
-      "SDK",
+      "SaaS starter docs",
+      "Next.js starter guide",
+      "developer documentation",
+      "Shipr setup",
     ],
   },
   privacy: {
