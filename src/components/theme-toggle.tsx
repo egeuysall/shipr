@@ -1,6 +1,5 @@
 "use client";
 
-import * as React from "react";
 import posthog from "posthog-js";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Moon02Icon, Sun01Icon } from "@hugeicons/core-free-icons";
@@ -27,16 +26,16 @@ export function ThemeToggle() {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger render={<Button variant="outline" size="icon-sm" />}>
+      <DropdownMenuTrigger render={<Button variant="outline" size="icon-xs" />}>
         <HugeiconsIcon
           icon={Sun01Icon}
           strokeWidth={2}
-          className="h-3 w-3 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0"
+          className="h-3.5! w-3.5! rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0"
         />
         <HugeiconsIcon
           icon={Moon02Icon}
           strokeWidth={2}
-          className="absolute h-3 w-3 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100"
+          className="absolute h-3.5! w-3.5! rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100"
         />
         <span className="sr-only">Toggle theme</span>
       </DropdownMenuTrigger>

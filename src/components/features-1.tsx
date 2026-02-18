@@ -16,10 +16,11 @@ export default function Features() {
           <Card className="row-span-2 grid grid-rows-subgrid">
             <div className="space-y-2">
               <h3 className="text-foreground font-medium">
-                Seamless Integrations
+                Built-In Foundation
               </h3>
               <p className="text-muted-foreground text-sm">
-                Connect your favorite tools and services with just a few clicks.
+                Next.js, Convex, Clerk auth, dashboard, uploads, and analytics
+                are ready from day one.
               </p>
             </div>
             <div
@@ -60,9 +61,12 @@ export default function Features() {
           </Card>
           <Card className="row-span-2 grid grid-rows-subgrid overflow-hidden">
             <div className="space-y-2">
-              <h3 className="text-foreground font-medium">Real-time Sync</h3>
+              <h3 className="text-foreground font-medium">
+                Analytics Included
+              </h3>
               <p className="text-muted-foreground text-sm">
-                Keep your data synchronized across all platforms automatically.
+                PostHog, Vercel Analytics, and Speed Insights are prewired for
+                product and performance tracking.
               </p>
             </div>
             <div aria-hidden className="relative h-44 translate-y-6">
@@ -75,10 +79,12 @@ export default function Features() {
           </Card>
           <Card className="row-span-2 grid grid-rows-subgrid overflow-hidden">
             <div className="space-y-2">
-              <h3 className="text-foreground font-medium">Developer First</h3>
+              <h3 className="text-foreground font-medium">
+                AI Features, Fast
+              </h3>
               <p className="text-muted-foreground mt-2 text-sm">
-                Built with developers in mind, featuring comprehensive APIs and
-                SDKs.
+                Vercel AI SDK support helps you ship chat, copilots, and AI
+                workflows without extra setup.
               </p>
             </div>
             <div
@@ -121,10 +127,12 @@ export default function Features() {
           </Card>
           <Card className="row-span-2 grid grid-rows-subgrid">
             <div className="space-y-2">
-              <h3 className="font-medium">Enterprise Ready</h3>
+              <h3 className="font-medium">
+                Secure Uploads
+              </h3>
               <p className="text-muted-foreground text-sm">
-                Scale confidently with enterprise-grade security and
-                reliability.
+                Strong defaults plus shareable file links let you build
+                user-facing upload flows safely and quickly.
               </p>
             </div>
 
