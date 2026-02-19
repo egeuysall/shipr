@@ -8,45 +8,37 @@ import {
   FILE_STORAGE_LIMITS,
   isImageMimeType,
 } from "../src/lib/files/config";
+import { ORG_PERMISSIONS } from "../src/lib/auth/rbac";
+import {
+  requireCurrentUser,
+  requireOrgPermission,
+  type OrganizationAuthContext,
+} from "./lib/auth";
 
 const ALLOWED_MIME_TYPES = new Set<string>(ALLOWED_FILE_MIME_TYPES);
 type FilesCtx = QueryCtx | MutationCtx;
 
-async function requireCurrentUser(ctx: FilesCtx) {
-  const identity = await ctx.auth.getUserIdentity();
-  if (!identity) {
-    throw new Error("Unauthorized: authentication required");
-  }
-
-  const user = await ctx.db
-    .query("users")
-    .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
-    .first();
-
-  if (!user) {
-    throw new Error("User not found");
-  }
-
-  return user;
-}
-
-async function requireOwnedFile(ctx: FilesCtx, fileId: Id<"files">) {
-  const user = await requireCurrentUser(ctx);
+async function requireOrganizationFile(
+  ctx: FilesCtx,
+  auth: OrganizationAuthContext,
+  fileId: Id<"files">,
+) {
   const file = await ctx.db.get(fileId);
 
   if (!file) {
     throw new Error("File not found");
   }
 
-  if (file.userId !== user._id) {
-    throw new Error("Forbidden: you do not own this file");
+  if (file.orgId !== auth.orgId) {
+    throw new Error("Forbidden: file belongs to another organization");
   }
 
-  return { user, file };
+  return file;
 }
 
 async function enforceImageUploadRateLimit(
   ctx: MutationCtx,
+  orgId: string,
   userId: Id<"users">,
 ) {
   const { maxUploadsPerWindow, windowMs } = FILE_UPLOAD_RATE_LIMITS.image;
@@ -57,12 +49,14 @@ async function enforceImageUploadRateLimit(
   }
 
   const windowStart = Date.now() - windowMs;
-  const userFiles = await ctx.db
+  const userFilesInOrg = await ctx.db
     .query("files")
-    .withIndex("by_user_id", (q) => q.eq("userId", userId))
+    .withIndex("by_org_id_created_by_user_id", (q) =>
+      q.eq("orgId", orgId).eq("createdByUserId", userId),
+    )
     .collect();
 
-  const recentImageUploads = userFiles.filter(
+  const recentImageUploads = userFilesInOrg.filter(
     (file) =>
       isImageMimeType(file.mimeType) && file._creationTime >= windowStart,
   );
@@ -85,21 +79,24 @@ async function enforceImageUploadRateLimit(
 }
 
 // Generate a short-lived upload URL (Step 1 of upload flow)
-// Requires authentication: only logged-in users can upload
+// Requires authentication + active organization
 export const generateUploadUrl = mutation({
   args: {},
   handler: async (ctx): Promise<string> => {
-    const user = await requireCurrentUser(ctx);
+    const { auth, user } = await requireCurrentUser(ctx);
+    requireOrgPermission(auth, ORG_PERMISSIONS.FILES_CREATE);
 
-    // Check user file count limit
-    const existingFiles = await ctx.db
+    // Check uploader's file count limit in the active organization.
+    const existingFilesByUploader = await ctx.db
       .query("files")
-      .withIndex("by_user_id", (q) => q.eq("userId", user._id))
+      .withIndex("by_org_id_created_by_user_id", (q) =>
+        q.eq("orgId", auth.orgId).eq("createdByUserId", user._id),
+      )
       .collect();
 
-    if (existingFiles.length >= FILE_STORAGE_LIMITS.maxFilesPerUser) {
+    if (existingFilesByUploader.length >= FILE_STORAGE_LIMITS.maxFilesPerUser) {
       throw new Error(
-        `File limit reached: maximum ${FILE_STORAGE_LIMITS.maxFilesPerUser} files per user`,
+        `File limit reached: maximum ${FILE_STORAGE_LIMITS.maxFilesPerUser} files per uploader in this workspace`,
       );
     }
 
@@ -108,9 +105,9 @@ export const generateUploadUrl = mutation({
 });
 
 // Save file metadata after upload (Step 3 of upload flow)
-// Validates file type, size, and ownership
+// Validates file type, size, and organization scope.
 // SECURITY: Verifies actual file metadata from _storage system table
-// to prevent client-side spoofing of size/MIME type
+// to prevent client-side spoofing of size/MIME type.
 export const saveFile = mutation({
   args: {
     storageId: v.id("_storage"),
@@ -119,29 +116,29 @@ export const saveFile = mutation({
     size: v.number(),
   },
   handler: async (ctx, args) => {
-    const user = await requireCurrentUser(ctx);
+    const { auth, user } = await requireCurrentUser(ctx);
+    requireOrgPermission(auth, ORG_PERMISSIONS.FILES_CREATE);
 
     // SECURITY: Cross-validate against actual stored file metadata
-    // This prevents client-side spoofing of file size and MIME type
+    // This prevents client-side spoofing of file size and MIME type.
     const storedFile = await ctx.db.system.get(args.storageId);
     if (!storedFile) {
       throw new Error("Storage ID not found: file may not have been uploaded");
     }
 
-    // Use ACTUAL size from storage, not client-provided size
+    // Use ACTUAL size from storage, not client-provided size.
     const actualSize = storedFile.size;
     const actualMimeType = storedFile.contentType ?? args.mimeType;
 
-    // Validate actual file size (not the client-provided one)
+    // Validate actual file size (not the client-provided one).
     if (actualSize > FILE_STORAGE_LIMITS.maxFileSizeBytes) {
-      // Clean up the uploaded file since we're rejecting it
       await ctx.storage.delete(args.storageId);
       throw new Error(
         `File too large: maximum size is ${FILE_STORAGE_LIMITS.maxFileSizeBytes / (1024 * 1024)}MB`,
       );
     }
 
-    // Validate actual MIME type (prefer storage contentType if available)
+    // Validate actual MIME type (prefer storage contentType if available).
     if (!ALLOWED_MIME_TYPES.has(actualMimeType)) {
       await ctx.storage.delete(args.storageId);
       throw new Error(
@@ -152,23 +149,24 @@ export const saveFile = mutation({
     // Rate limit image uploads to reduce abuse; delete blob on reject.
     if (isImageMimeType(actualMimeType)) {
       try {
-        await enforceImageUploadRateLimit(ctx, user._id);
+        await enforceImageUploadRateLimit(ctx, auth.orgId, user._id);
       } catch (error) {
         await ctx.storage.delete(args.storageId);
         throw error;
       }
     }
 
-    // Sanitize file name: strip path separators and limit length
+    // Sanitize file name: strip path separators and limit length.
     const sanitizedName = args.fileName
       .replace(/[/\\]/g, "_")
-      .replace(/[<>:"|?*]/g, "_")
+      .replace(/[<>:\"|?*]/g, "_")
       .slice(0, 255);
 
-    // Store using ACTUAL verified metadata, not client-provided values
+    // Store using ACTUAL verified metadata, not client-provided values.
     return await ctx.db.insert("files", {
+      orgId: auth.orgId,
       storageId: args.storageId,
-      userId: user._id,
+      createdByUserId: user._id,
       fileName: sanitizedName,
       mimeType: actualMimeType,
       size: actualSize,
@@ -176,52 +174,67 @@ export const saveFile = mutation({
   },
 });
 
-// List files for the currently authenticated user
-export const getUserFiles = query({
+// List files for the active organization.
+export const getOrganizationFiles = query({
   args: {},
   handler: async (ctx) => {
-    let user;
+    let auth;
     try {
-      user = await requireCurrentUser(ctx);
+      ({ auth } = await requireCurrentUser(ctx));
+      requireOrgPermission(auth, ORG_PERMISSIONS.FILES_READ);
     } catch {
       return [];
     }
 
     const files = await ctx.db
       .query("files")
-      .withIndex("by_user_id", (q) => q.eq("userId", user._id))
+      .withIndex("by_org_id", (q) => q.eq("orgId", auth.orgId))
       .order("desc")
       .collect();
 
-    // Attach serving URLs to each file
-    return Promise.all(
-      files.map(async (file) => ({
-        ...file,
-        url: await ctx.storage.getUrl(file.storageId),
-      })),
+    return await Promise.all(
+      files.map(async (file) => {
+        const uploader = await ctx.db.get(file.createdByUserId);
+        return {
+          ...file,
+          url: await ctx.storage.getUrl(file.storageId),
+          uploader: uploader
+            ? {
+                name: uploader.name ?? null,
+                email: uploader.email,
+                imageUrl: uploader.imageUrl ?? null,
+              }
+            : null,
+        };
+      }),
     );
   },
 });
 
-// Get a single file's URL (with ownership check)
+// Get a single file's URL (with organization + permission checks).
 export const getFileUrl = query({
   args: { fileId: v.id("files") },
   handler: async (ctx, args) => {
-    const { file } = await requireOwnedFile(ctx, args.fileId);
+    const { auth } = await requireCurrentUser(ctx);
+    requireOrgPermission(auth, ORG_PERMISSIONS.FILES_READ);
 
+    const file = await requireOrganizationFile(ctx, auth, args.fileId);
     const url = await ctx.storage.getUrl(file.storageId);
     return { ...file, url };
   },
 });
 
-// Delete a file (with ownership check)
-// Removes both the storage blob and the database record
+// Delete a file (admin-only by default fallback role matrix).
+// Removes both the storage blob and the database record.
 export const deleteFile = mutation({
   args: { fileId: v.id("files") },
   handler: async (ctx, args) => {
-    const { file } = await requireOwnedFile(ctx, args.fileId);
+    const { auth } = await requireCurrentUser(ctx);
+    requireOrgPermission(auth, ORG_PERMISSIONS.FILES_DELETE);
 
-    // Delete the blob from storage first, then the metadata
+    const file = await requireOrganizationFile(ctx, auth, args.fileId);
+
+    // Delete the blob from storage first, then the metadata.
     await ctx.storage.delete(file.storageId);
     await ctx.db.delete(args.fileId);
   },

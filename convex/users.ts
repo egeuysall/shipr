@@ -1,29 +1,20 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import type { MutationCtx, QueryCtx } from "./_generated/server";
 
 // Onboarding steps
 export type OnboardingStep = "welcome" | "profile" | "preferences" | "complete";
 
-// Get user by Clerk ID
-export const getUserByClerkId = query({
-  args: { clerkId: v.string() },
-  handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) {
-      return null;
-    }
+async function requireAuthenticatedClerkId(
+  ctx: QueryCtx | MutationCtx,
+): Promise<string> {
+  const identity = await ctx.auth.getUserIdentity();
+  if (!identity) {
+    throw new Error("Unauthorized: authentication required");
+  }
 
-    // Users can only query their own record
-    if (identity.subject !== args.clerkId) {
-      throw new Error("Forbidden: cannot access another user's data");
-    }
-
-    return await ctx.db
-      .query("users")
-      .withIndex("by_clerk_id", (q) => q.eq("clerkId", args.clerkId))
-      .first();
-  },
-});
+  return identity.subject;
+}
 
 // Get the currently authenticated user
 export const getCurrentUser = query({
@@ -42,29 +33,20 @@ export const getCurrentUser = query({
 });
 
 // Create or update user (called from client-side useSyncUser hook)
-// Requires authentication: user can only sync their own data
+// Requires authentication and derives clerkId from the authenticated identity.
 export const createOrUpdateUser = mutation({
   args: {
-    clerkId: v.string(),
     email: v.string(),
     name: v.optional(v.string()),
     imageUrl: v.optional(v.string()),
     plan: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) {
-      throw new Error("Unauthorized: authentication required");
-    }
-
-    // Ensure users can only create/update their own record
-    if (identity.subject !== args.clerkId) {
-      throw new Error("Forbidden: cannot modify another user's data");
-    }
+    const clerkId = await requireAuthenticatedClerkId(ctx);
 
     const existing = await ctx.db
       .query("users")
-      .withIndex("by_clerk_id", (q) => q.eq("clerkId", args.clerkId))
+      .withIndex("by_clerk_id", (q) => q.eq("clerkId", clerkId))
       .first();
 
     if (existing) {
@@ -78,7 +60,7 @@ export const createOrUpdateUser = mutation({
     }
 
     return await ctx.db.insert("users", {
-      clerkId: args.clerkId,
+      clerkId,
       email: args.email,
       name: args.name,
       imageUrl: args.imageUrl,
@@ -87,24 +69,15 @@ export const createOrUpdateUser = mutation({
   },
 });
 
-// Delete user by Clerk ID
-// Requires authentication: user can only delete their own record
-export const deleteUser = mutation({
-  args: { clerkId: v.string() },
-  handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) {
-      throw new Error("Unauthorized: authentication required");
-    }
-
-    // Ensure users can only delete their own record
-    if (identity.subject !== args.clerkId) {
-      throw new Error("Forbidden: cannot delete another user's data");
-    }
+// Delete current user
+export const deleteCurrentUser = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const clerkId = await requireAuthenticatedClerkId(ctx);
 
     const user = await ctx.db
       .query("users")
-      .withIndex("by_clerk_id", (q) => q.eq("clerkId", args.clerkId))
+      .withIndex("by_clerk_id", (q) => q.eq("clerkId", clerkId))
       .first();
 
     if (user) {
@@ -145,14 +118,11 @@ export const updateOnboardingStep = mutation({
     ),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) {
-      throw new Error("Unauthorized: authentication required");
-    }
+    const clerkId = await requireAuthenticatedClerkId(ctx);
 
     const user = await ctx.db
       .query("users")
-      .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
+      .withIndex("by_clerk_id", (q) => q.eq("clerkId", clerkId))
       .first();
 
     if (!user) {
@@ -169,14 +139,11 @@ export const updateOnboardingStep = mutation({
 export const completeOnboarding = mutation({
   args: {},
   handler: async (ctx) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) {
-      throw new Error("Unauthorized: authentication required");
-    }
+    const clerkId = await requireAuthenticatedClerkId(ctx);
 
     const user = await ctx.db
       .query("users")
-      .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
+      .withIndex("by_clerk_id", (q) => q.eq("clerkId", clerkId))
       .first();
 
     if (!user) {
@@ -194,14 +161,11 @@ export const completeOnboarding = mutation({
 export const resetOnboarding = mutation({
   args: {},
   handler: async (ctx) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) {
-      throw new Error("Unauthorized: authentication required");
-    }
+    const clerkId = await requireAuthenticatedClerkId(ctx);
 
     const user = await ctx.db
       .query("users")
-      .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
+      .withIndex("by_clerk_id", (q) => q.eq("clerkId", clerkId))
       .first();
 
     if (!user) {

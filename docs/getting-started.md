@@ -5,7 +5,7 @@
 | Layer          | Tech                                 |
 | -------------- | ------------------------------------ |
 | Framework      | Next.js 16 (App Router)              |
-| Auth           | Clerk                                |
+| Auth           | Clerk (Organizations)                |
 | Database       | Convex                               |
 | Styling        | Tailwind CSS 4 + shadcn/ui + Base UI |
 | Analytics      | PostHog (reverse-proxied)            |
@@ -13,13 +13,17 @@
 | Fonts          | Geist Sans / Mono / Pixel Square     |
 | Deployment     | Vercel                               |
 
+## Branch Scope
+
+This branch is the dedicated multi-tenant variant (`feat/multi-tenancy`) and is intended for apps that require organization-based tenancy.
+
 ## Prerequisites
 
 - Node.js 18+
 - pnpm
-- A Clerk account
-- A Convex project
-- (Optional) PostHog & Sentry accounts
+- Clerk project with Organizations enabled
+- Convex project
+- (Optional) PostHog and Sentry accounts
 
 ## Setup
 
@@ -29,70 +33,50 @@ pnpm install
 cp .env.example .env
 ```
 
-Fill in your `.env` values, then:
+Fill `.env`, then run:
 
 ```bash
-npx convex dev   # start Convex dev server
-pnpm dev         # start Next.js dev server
+npx convex dev
+pnpm dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000).
 
-## Project Structure
+## Clerk Setup (Required for Tenancy)
+
+1. Enable Organizations in Clerk Dashboard.
+2. Ensure org roles are available (`org:admin`, `org:member`).
+3. (Optional) Configure custom organization permissions matching `src/lib/auth/rbac.ts`.
+4. Configure org billing plans if using paid tiers.
+
+## Route Behavior
+
+- Signed-out users are redirected to sign-in for protected routes.
+- Signed-in users without an active org are redirected to `/onboarding`.
+- Dashboard usage requires an active organization context.
+
+## Project Structure Highlights
 
 ```
 src/
 ├── app/
-│   ├── (auth)/          # Sign-in & sign-up pages (Clerk)
-│   ├── (dashboard)/     # Protected dashboard
-│   ├── (legal)/         # Privacy, terms, cookies
-│   ├── (marketing)/     # Landing, features, pricing, about, docs, blog
-│   │   └── blog/        # Blog index + [slug] detail pages
-│   ├── api/
-│   │   ├── chat/        # Vercel AI SDK chat endpoint
-│   │   ├── email/       # Send transactional emails via Resend
-│   │   └── health/      # Health check endpoint (rate-limited)
-│   ├── onboarding/      # Multi-step onboarding flow for new users
-│   ├── layout.tsx       # Root layout (providers, metadata, fonts)
-│   ├── not-found.tsx    # Custom 404 page
-│   ├── error.tsx        # App-level error boundary
-│   ├── global-error.tsx # Root error boundary
-│   ├── robots.ts        # Robots.txt generation
-│   └── sitemap.ts       # Sitemap generation
-├── components/
-│   ├── ui/              # shadcn/ui primitives
-│   ├── billing/         # Upgrade button, plan gating
-│   ├── dashboard/       # Dashboard shell, sidebar, top nav
-│   ├── posthog-*.tsx    # PostHog provider, pageview, identify
-│   ├── theme-toggle.tsx # Light/dark/system theme switcher
-│   ├── header.tsx       # Marketing header
-│   └── footer-1.tsx     # Marketing footer (includes theme toggle)
-├── hooks/
-│   ├── use-mobile.ts      # Responsive breakpoint hook
-│   ├── use-onboarding.ts  # Check onboarding status & redirect logic
-│   ├── use-sync-user.ts   # Syncs Clerk user to Convex
-│   └── use-user-plan.ts   # Reads current billing plan
+│   ├── (dashboard)/onboarding/page.tsx
+│   ├── api/chat/route.ts
+│   └── api/email/route.ts
 ├── lib/
-│   ├── blog.ts          # Blog post data & helpers
-│   ├── constants.ts     # SEO, routes, structured data config
-│   ├── emails/          # Email templates + Resend send helper
-│   ├── files/           # Shared file upload limits/types/formatting config
-│   ├── ai/              # AI chat config (model, prompt, rate limits)
-│   │   └── tools/       # AI tool registry for chat
-│   ├── rate-limit.ts    # In-memory sliding window rate limiter
-│   ├── structured-data.tsx  # JSON-LD components
-│   ├── sentry.ts        # Sentry helper wrappers
-│   ├── convex-client-provider.tsx # Convex + Clerk provider
-│   └── utils.ts         # cn() class merge utility
+│   ├── auth/rbac.ts
+│   └── convex-client-provider.tsx
 convex/
-├── schema.ts            # Database schema
-├── users.ts             # User queries & mutations
-└── auth.config.ts       # Clerk JWT config for Convex
+├── lib/auth.ts
+├── schema.ts
+├── users.ts
+├── files.ts
+└── chat.ts
 ```
 
 ## Environment Variables
 
-See `.env.example` for the full list. Key ones:
+See `.env.example` for full list.
 
 | Variable                                 | Purpose                                                                 |
 | ---------------------------------------- | ----------------------------------------------------------------------- |
@@ -101,172 +85,12 @@ See `.env.example` for the full list. Key ones:
 | `NEXT_PUBLIC_CONVEX_URL`                 | Convex deployment URL                                                   |
 | `CLERK_JWT_ISSUER_DOMAIN`                | Clerk JWT issuer (Convex)                                               |
 | `AI_GATEWAY_API_KEY`                     | Vercel AI Gateway key for `/api/chat`                                   |
-| `AI_CHAT_MODEL`                          | Model ID (default: `openai/gpt-4.1-mini`)                               |
-| `AI_CHAT_SYSTEM_PROMPT`                  | Base system prompt for assistant behavior                               |
-| `AI_CHAT_TOOLS`                          | Comma-separated enabled tools (default: `getCurrentDateTime,calculate`) |
-| `AI_CHAT_MAX_STEPS`                      | Max model steps/tool calls per response (default: `5`)                  |
-| `AI_CHAT_RATE_LIMIT_MAX_REQUESTS`        | Max chat requests per window per user/IP (default: `20`)                |
-| `AI_CHAT_RATE_LIMIT_WINDOW_MS`           | Chat rate-limit window in ms (default: `60000`)                         |
-| `AI_CHAT_ENFORCE_LIFETIME_MESSAGE_LIMIT` | Enable/disable lifetime per-user message cap (default: `true`)          |
-| `AI_CHAT_LIFETIME_MESSAGE_LIMIT`         | Lifetime message cap when enabled (default: `1`)                        |
-| `AI_CHAT_HISTORY_ENABLED`                | Enable/disable Convex chat history persistence (default: `true`)        |
-| `AI_CHAT_HISTORY_MAX_MESSAGE_LENGTH`     | Max chars per persisted chat message (default: `8000`)                  |
-| `AI_CHAT_HISTORY_MAX_MESSAGES_PER_THREAD` | Max persisted messages per chat thread (default: `120`)                |
-| `AI_CHAT_HISTORY_MAX_THREADS`            | Max chat threads per user (default: `50`)                               |
-| `AI_CHAT_HISTORY_THREAD_TITLE_MAX_LENGTH` | Max chars for auto-generated chat titles (default: `80`)               |
-| `AI_CHAT_HISTORY_QUERY_LIMIT`            | Max persisted messages returned to chat UI (default: `200`)             |
-| `FILE_IMAGE_UPLOAD_RATE_LIMIT_MAX_UPLOADS` | Max image uploads per user in each window (default: `10`)             |
-| `FILE_IMAGE_UPLOAD_RATE_LIMIT_WINDOW_MS` | Image upload rate-limit window in ms (default: `60000`)                 |
 | `RESEND_API_KEY`                         | Resend API key for transactional emails                                 |
-| `RESEND_FROM_EMAIL`                      | Sender address (optional, defaults to `onboarding@resend.dev`)          |
 | `NEXT_PUBLIC_POSTHOG_KEY`                | PostHog project API key                                                 |
 | `NEXT_PUBLIC_POSTHOG_HOST`               | PostHog ingest host                                                     |
-| `SENTRY_ORG` / `SENTRY_PROJECT`          | Sentry source map uploads                                               |
 
-## Scripts
+## Notes
 
-```bash
-pnpm dev        # Start dev server
-pnpm build      # Production build
-pnpm start      # Start production server
-pnpm lint       # ESLint
-npx convex dev  # Convex dev mode
-```
-
-## Blog
-
-Posts live in `src/lib/blog.ts` as a simple array, no MDX or CMS needed. Add a new object to `BLOG_POSTS` and it appears on `/blog` with its own `/blog/[slug]` page, sitemap entry, and JSON-LD structured data automatically.
-
-## API Routes
-
-- `GET /api/health` - returns uptime and a timestamp, rate-limited to 30 req/min per IP.
-- `POST /api/chat` - streams AI responses for `/dashboard/chat` via Vercel AI SDK, protected by Clerk auth and rate-limited.
-- `POST /api/email` - sends a transactional email to the authenticated user via Resend. Protected by Clerk auth and rate-limited to 10 req/min per IP. See the [Email (Resend)](#email-resend) section below.
-
-## AI Chat Tool Registry
-
-Chat tools are defined in `src/lib/ai/tools/registry.ts` and injected into `POST /api/chat`.
-
-- Add a new tool by defining it in `allChatTools`.
-- Enable/disable tools with `AI_CHAT_TOOLS` (comma-separated names).
-- Keep route logic unchanged while extending capabilities for builders.
-
-## File Module Config
-
-File constraints and formatting are centralized in `src/lib/files/config.ts`.
-
-- Set allowed MIME types/extensions in `FILE_TYPE_CATALOG`.
-- Set limits in `FILE_STORAGE_LIMITS` (`maxFileSizeBytes`, `maxFilesPerUser`).
-- Frontend upload UI, upload hook, and Convex file mutations all consume this config.
-
-## Rate Limiting
-
-`src/lib/rate-limit.ts` provides a sliding window rate limiter. Use it in any API route:
-
-```ts
-import { rateLimit } from "@/lib/rate-limit";
-
-const limiter = rateLimit({ interval: 60_000, limit: 10 });
-
-export async function GET(req: Request) {
-  const ip = req.headers.get("x-forwarded-for") ?? "unknown";
-  const { success, remaining, reset } = limiter.check(ip);
-
-  if (!success) {
-    return Response.json({ error: "Too many requests" }, { status: 429 });
-  }
-
-  return Response.json({ ok: true });
-}
-```
-
-> **Note:** This is in-memory and resets on cold starts. For production multi-instance deployments, swap it with Upstash Redis or similar.
-
-## Email (Resend)
-
-Transactional emails are sent via [Resend](https://resend.com). Templates and the send helper live in `src/lib/emails/`.
-
-### Setup
-
-1. Create an account at [resend.com](https://resend.com) and grab your API key.
-2. Add the key to `.env`:
-   ```
-   RESEND_API_KEY=re_...
-   RESEND_FROM_EMAIL=hello@yourdomain.com
-   ```
-3. If you are testing locally without a verified domain, leave `RESEND_FROM_EMAIL` unset and Resend will use its sandbox sender (`onboarding@resend.dev`).
-
-### Templates
-
-Each template exports a function returning `{ subject, html }`:
-
-- `welcomeEmail({ name })` - welcome email for new sign-ups
-- `planChangedEmail({ name, previousPlan, newPlan })` - plan upgrade/downgrade notification
-
-### Sending emails server-side
-
-Use the `sendEmail` helper in any server context (API routes, server actions):
-
-```ts
-import { sendEmail, welcomeEmail } from "@/lib/emails";
-
-const { subject, html } = welcomeEmail({ name: "Ege" });
-const result = await sendEmail({ to: "ege@example.com", subject, html });
-
-if (!result.success) {
-  console.error("Email failed:", result.error);
-}
-```
-
-### API route
-
-`POST /api/email` sends a template email to the currently authenticated user. It reads the user's email from Clerk, so the caller only provides the template and its data.
-
-```json
-{ "template": "welcome", "name": "Ege" }
-```
-
-```json
-{
-  "template": "plan-changed",
-  "name": "Ege",
-  "previousPlan": "free",
-  "newPlan": "pro"
-}
-```
-
-The route is Clerk-authenticated and rate-limited to 10 requests per minute.
-
-## Onboarding
-
-New users are automatically redirected to `/onboarding` on their first dashboard visit. The onboarding flow is a clean, multi-step process that:
-
-- Welcomes users and shows what to expect
-- Reviews their profile information from Clerk
-- Shows next steps and tips
-- Tracks completion state in Convex
-
-### How it works
-
-1. **Tracking**: The `onboardingCompleted` and `onboardingStep` fields in the Convex `users` table track progress.
-2. **Hook**: The `useOnboarding` hook checks status and redirects appropriately.
-3. **Auto-redirect**: The `DashboardShell` component calls `useOnboarding()` to enforce the flow.
-4. **Skip option**: Users can skip onboarding and come back later.
-
-### Customizing steps
-
-Edit `src/app/(dashboard)/onboarding/page.tsx` to add your own steps. The current steps are:
-
-1. **Welcome** - Introduction and overview
-2. **Profile** - Show user info from Clerk
-3. **Preferences** - Final step before completion
-
-Add new steps by:
-
-1. Adding the step to the `STEPS` array
-2. Adding a case to the `renderStep()` function
-3. Updating the `OnboardingStep` type in `convex/users.ts`
-
-### Reset onboarding
-
-For testing, you can reset a user's onboarding via the Convex dashboard or by calling the `resetOnboarding` mutation.
+- Chat and file modules are workspace-shared and org-scoped.
+- Onboarding remains account-level per user.
+- Billing checks are organization-scoped in this branch.

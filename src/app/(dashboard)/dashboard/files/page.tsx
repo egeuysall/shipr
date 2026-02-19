@@ -3,6 +3,7 @@
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@convex/_generated/api";
 import type { Id } from "@convex/_generated/dataModel";
+import { useAuth } from "@clerk/nextjs";
 import { FileUpload } from "@/components/dashboard/file-upload";
 import {
   FILE_STORAGE_LIMITS,
@@ -31,6 +32,7 @@ import {
 } from "@hugeicons/core-free-icons";
 import { useState, useCallback } from "react";
 import { toast } from "sonner";
+import { hasOrgPermission, ORG_PERMISSIONS } from "@/lib/auth/rbac";
 
 /** Loading skeleton for file list items */
 function FileItemSkeleton() {
@@ -54,9 +56,36 @@ function FileItemSkeleton() {
 }
 
 export default function FilesPage() {
-  const files = useQuery(api.files.getUserFiles);
+  const { has, orgRole, isLoaded } = useAuth();
+  const canReadFiles =
+    isLoaded &&
+    hasOrgPermission({
+      orgRole,
+      has,
+      permission: ORG_PERMISSIONS.FILES_READ,
+    });
+  const canCreateFiles =
+    isLoaded &&
+    hasOrgPermission({
+      orgRole,
+      has,
+      permission: ORG_PERMISSIONS.FILES_CREATE,
+    });
+  const canDeleteFiles =
+    isLoaded &&
+    hasOrgPermission({
+      orgRole,
+      has,
+      permission: ORG_PERMISSIONS.FILES_DELETE,
+    });
+
+  const files = useQuery(
+    api.files.getOrganizationFiles,
+    canReadFiles ? {} : "skip",
+  );
   const deleteFile = useMutation(api.files.deleteFile);
   const [deletingIds, setDeletingIds] = useState<Set<string>>(new Set());
+  const visibleFiles = files ?? [];
 
   const handleDelete = useCallback(
     async (fileId: Id<"files">) => {
@@ -92,7 +121,7 @@ export default function FilesPage() {
     document.body.removeChild(link);
   }, []);
 
-  const isLoading = files === undefined;
+  const isLoading = !isLoaded || (canReadFiles && files === undefined);
 
   return (
     <div className="space-y-6">
@@ -114,52 +143,67 @@ export default function FilesPage() {
       </div>
 
       {/* Upload section */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-base">
-            <HugeiconsIcon
-              icon={FileAttachmentIcon}
-              strokeWidth={2}
-              className="h-4 w-4"
-            />
-            Upload Files
-          </CardTitle>
-          <CardDescription>
-            Drag and drop or browse to upload files. Max{" "}
-            {formatFileSize(FILE_STORAGE_LIMITS.maxFileSizeBytes)} per file.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <FileUpload />
-        </CardContent>
-      </Card>
+      {canCreateFiles ? (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <HugeiconsIcon
+                icon={FileAttachmentIcon}
+                strokeWidth={2}
+                className="h-4 w-4"
+              />
+              Upload Files
+            </CardTitle>
+            <CardDescription>
+              Drag and drop or browse to upload files. Max{" "}
+              {formatFileSize(FILE_STORAGE_LIMITS.maxFileSizeBytes)} per file.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <FileUpload />
+          </CardContent>
+        </Card>
+      ) : null}
 
       {/* Files list */}
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="text-base">Your Files</CardTitle>
+              <CardTitle className="text-base">Workspace Files</CardTitle>
               <CardDescription>
-                {isLoading ? (
+                {!canReadFiles ? (
+                  "You do not have permission to view files."
+                ) : isLoading ? (
                   <Skeleton className="h-4 w-32" />
-                ) : files.length === 0 ? (
+                ) : visibleFiles.length === 0 ? (
                   "No files uploaded yet"
                 ) : (
-                  `${files.length} file${files.length === 1 ? "" : "s"}`
+                  `${visibleFiles.length} file${visibleFiles.length === 1 ? "" : "s"}`
                 )}
               </CardDescription>
             </div>
           </div>
         </CardHeader>
         <CardContent>
-          {isLoading ? (
+          {!canReadFiles ? (
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <HugeiconsIcon
+                icon={File01Icon}
+                strokeWidth={1.5}
+                className="h-12 w-12 text-muted-foreground/50"
+              />
+              <p className="mt-4 text-sm text-muted-foreground">
+                You do not have permission to access workspace files.
+              </p>
+            </div>
+          ) : isLoading ? (
             <div className="space-y-3">
               <FileItemSkeleton />
               <FileItemSkeleton />
               <FileItemSkeleton />
             </div>
-          ) : files.length === 0 ? (
+          ) : visibleFiles.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
               <HugeiconsIcon
                 icon={File01Icon}
@@ -172,7 +216,7 @@ export default function FilesPage() {
             </div>
           ) : (
             <div className="space-y-3">
-              {files.map((file) => {
+              {visibleFiles.map((file) => {
                 const isDeleting = deletingIds.has(file._id);
                 const isImage = isImageMimeType(file.mimeType);
 
@@ -206,6 +250,11 @@ export default function FilesPage() {
                       <p className="truncate text-sm font-medium">
                         {file.fileName}
                       </p>
+                      {file.uploader ? (
+                        <p className="text-xs text-muted-foreground">
+                          Uploaded by {file.uploader.name ?? file.uploader.email}
+                        </p>
+                      ) : null}
                       <div className="mt-1 flex flex-wrap items-center gap-2">
                         <Badge variant="outline" className="text-xs">
                           {getFileTypeLabel(file.mimeType)}
@@ -237,20 +286,22 @@ export default function FilesPage() {
                           />
                         </Button>
                       )}
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleDelete(file._id as Id<"files">)}
-                        disabled={isDeleting}
-                        title="Delete"
-                        className="hover:text-destructive"
-                      >
-                        <HugeiconsIcon
-                          icon={Delete02Icon}
-                          strokeWidth={2}
-                          className="h-4 w-4"
-                        />
-                      </Button>
+                      {canDeleteFiles ? (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDelete(file._id as Id<"files">)}
+                          disabled={isDeleting}
+                          title="Delete"
+                          className="hover:text-destructive"
+                        >
+                          <HugeiconsIcon
+                            icon={Delete02Icon}
+                            strokeWidth={2}
+                            className="h-4 w-4"
+                          />
+                        </Button>
+                      ) : null}
                     </div>
                   </div>
                 );

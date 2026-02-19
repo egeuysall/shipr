@@ -8,16 +8,17 @@ import { api } from "@convex/_generated/api";
 /**
  * Hook to check if the user has completed onboarding.
  * Redirects to /onboarding if not completed and not already there.
- *
- * @returns Onboarding status and completion state.
  */
-export function useOnboarding() {
+export function useOnboarding(enabled = true) {
   const router = useRouter();
   const pathname = usePathname();
-  const onboardingStatus = useQuery(api.users.getOnboardingStatus);
+  const onboardingStatus = useQuery(
+    api.users.getOnboardingStatus,
+    enabled ? {} : "skip",
+  );
 
   useEffect(() => {
-    if (!onboardingStatus) return;
+    if (!enabled || !onboardingStatus) return;
 
     const isOnOnboardingPage = pathname === "/onboarding";
     const shouldRedirectToOnboarding =
@@ -30,11 +31,11 @@ export function useOnboarding() {
     } else if (shouldRedirectToDashboard) {
       router.push("/dashboard");
     }
-  }, [onboardingStatus, pathname, router]);
+  }, [onboardingStatus, pathname, router, enabled]);
 
   return {
     completed: onboardingStatus?.completed ?? false,
     currentStep: onboardingStatus?.currentStep ?? "welcome",
-    isLoading: onboardingStatus === undefined,
+    isLoading: enabled && onboardingStatus === undefined,
   };
 }

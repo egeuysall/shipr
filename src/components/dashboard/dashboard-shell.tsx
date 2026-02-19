@@ -18,6 +18,7 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { usePathname } from "next/navigation";
+import { useAuth } from "@clerk/nextjs";
 
 interface BreadcrumbData {
   parent: string | null;
@@ -55,8 +56,11 @@ export function DashboardShell({
 }: {
   children: React.ReactNode;
 }): React.ReactElement {
-  useSyncUser();
-  useOnboarding();
+  const { isLoaded, orgId } = useAuth();
+  const hasOrganizationContext = isLoaded && Boolean(orgId);
+
+  useSyncUser(hasOrganizationContext);
+  useOnboarding(hasOrganizationContext);
   const pathname = usePathname();
   const breadcrumbs = getBreadcrumbsFromPathname(pathname);
 

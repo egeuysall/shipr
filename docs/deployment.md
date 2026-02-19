@@ -2,88 +2,58 @@
 
 ## Environment Variables
 
-Copy `.env.example` to `.env` and fill in the values:
+Copy `.env.example` and fill values:
 
 ```sh
 cp .env.example .env
 ```
 
-| Variable                                 | Description                                        | Required |
-| ---------------------------------------- | -------------------------------------------------- | -------- |
-| `NEXT_PUBLIC_SITE_URL`                   | Your production URL (e.g. `https://shipr.dev`)     | Yes      |
-| `NEXT_PUBLIC_CONVEX_URL`                 | Convex deployment URL                              | Yes      |
-| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`      | Clerk publishable key                              | Yes      |
-| `CLERK_SECRET_KEY`                       | Clerk secret key                                   | Yes      |
-| `CLERK_JWT_ISSUER_DOMAIN`                | Clerk JWT issuer for Convex auth                   | Yes      |
-| `AI_GATEWAY_API_KEY`                     | Vercel AI Gateway key for dashboard chat           | Yes      |
-| `AI_CHAT_MODEL`                          | Chat model ID (defaults to `openai/gpt-4.1-mini`)  | Optional |
-| `AI_CHAT_SYSTEM_PROMPT`                  | System prompt for chat assistant behavior          | Optional |
-| `AI_CHAT_TOOLS`                          | Enabled chat tool names, comma-separated           | Optional |
-| `AI_CHAT_MAX_STEPS`                      | Max model steps/tool calls per response            | Optional |
-| `AI_CHAT_RATE_LIMIT_MAX_REQUESTS`        | Max chat requests per rate-limit window            | Optional |
-| `AI_CHAT_RATE_LIMIT_WINDOW_MS`           | Chat rate-limit window in milliseconds             | Optional |
-| `AI_CHAT_ENFORCE_LIFETIME_MESSAGE_LIMIT` | Enable/disable lifetime per-user message cap       | Optional |
-| `AI_CHAT_LIFETIME_MESSAGE_LIMIT`         | Lifetime message cap when enabled                  | Optional |
-| `AI_CHAT_HISTORY_ENABLED`                | Enable/disable Convex chat history persistence     | Optional |
-| `AI_CHAT_HISTORY_MAX_MESSAGE_LENGTH`     | Max chars per persisted chat message               | Optional |
-| `AI_CHAT_HISTORY_MAX_MESSAGES_PER_THREAD` | Max persisted chat messages per chat thread      | Optional |
-| `AI_CHAT_HISTORY_MAX_THREADS`            | Max chat threads per user                          | Optional |
-| `AI_CHAT_HISTORY_THREAD_TITLE_MAX_LENGTH` | Max chars for auto-generated chat titles         | Optional |
-| `AI_CHAT_HISTORY_QUERY_LIMIT`            | Max persisted messages returned to chat UI         | Optional |
-| `FILE_IMAGE_UPLOAD_RATE_LIMIT_MAX_UPLOADS` | Max image uploads per user in each window       | Optional |
-| `FILE_IMAGE_UPLOAD_RATE_LIMIT_WINDOW_MS` | Image upload rate-limit window in milliseconds     | Optional |
-| `RESEND_API_KEY`                         | Resend API key for transactional emails            | Yes      |
-| `RESEND_FROM_EMAIL`                      | Sender address (defaults to onboarding@resend.dev) | Optional |
-| `NEXT_PUBLIC_POSTHOG_KEY`                | PostHog project API key                            | Optional |
-| `NEXT_PUBLIC_POSTHOG_HOST`               | PostHog ingest host                                | Optional |
-| `SENTRY_AUTH_TOKEN`                      | Sentry auth token for source maps                  | Optional |
+Key required variables:
+
+| Variable                            | Description                                        |
+| ----------------------------------- | -------------------------------------------------- |
+| `NEXT_PUBLIC_SITE_URL`              | Production URL                                     |
+| `NEXT_PUBLIC_CONVEX_URL`            | Convex deployment URL                              |
+| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk publishable key                              |
+| `CLERK_SECRET_KEY`                  | Clerk secret key                                   |
+| `CLERK_JWT_ISSUER_DOMAIN`           | Clerk JWT issuer for Convex                        |
+| `AI_GATEWAY_API_KEY`                | Vercel AI Gateway key for dashboard chat           |
+| `RESEND_API_KEY`                    | Resend API key for transactional email             |
+
+## Multi-tenant Requirements
+
+This branch requires Clerk Organizations.
+
+Before deploying:
+
+1. Enable Organizations in Clerk.
+2. Ensure users can create/join organizations.
+3. Configure organization roles (`org:admin`, `org:member`).
+4. (Optional) Configure custom permissions matching `src/lib/auth/rbac.ts`.
+5. If using paid plans, configure Clerk Billing for organizations.
 
 ## Vercel
 
-1. Push your repo to GitHub
-2. Import the project in [Vercel](https://vercel.com/new)
-3. Add all environment variables in the Vercel dashboard
-4. Deploy - Vercel auto-detects Next.js
-
-### Build settings
-
-Vercel should auto-detect these, but if not:
-
-- **Framework:** Next.js
-- **Build command:** `pnpm build`
-- **Output directory:** `.next`
+1. Push branch to GitHub.
+2. Import in [Vercel](https://vercel.com/new).
+3. Add environment variables.
+4. Deploy with `pnpm build`.
 
 ## Convex
 
-1. Install the CLI: `pnpm add -g convex`
-2. Run `npx convex dev` locally to sync your schema
-3. For production, deploy with `npx convex deploy`
-4. Set `CLERK_JWT_ISSUER_DOMAIN` in the [Convex dashboard](https://dashboard.convex.dev) under Authentication
+1. Run `npx convex dev` locally while developing.
+2. Deploy with `npx convex deploy`.
+3. Ensure `CLERK_JWT_ISSUER_DOMAIN` is configured in Convex auth settings.
 
 ## Clerk
 
-1. Create a project at [clerk.com](https://clerk.com)
-2. Copy your keys to `.env`
-3. Enable Clerk Billing if you want Pro/Free plan gating
-4. Configure the JWT issuer domain for Convex integration
+1. Create/select your Clerk project.
+2. Configure sign-in/sign-up URLs.
+3. Enable Organizations.
+4. Verify active-org claims are available in sessions.
 
-## Sentry
+## Security Checklist
 
-1. Create a project at [sentry.io](https://sentry.io)
-2. Add `SENTRY_AUTH_TOKEN` to your environment
-3. Source maps are uploaded automatically during build via `@sentry/nextjs`
-4. Error tracking works out of the box - see `src/lib/sentry.ts` for helpers
-
-## Resend
-
-1. Create an account at [resend.com](https://resend.com)
-2. Add a verified domain (or use the sandbox sender for testing)
-3. Copy your API key and add `RESEND_API_KEY` to `.env`
-4. Optionally set `RESEND_FROM_EMAIL` to your verified sender address (e.g. `hello@yourdomain.com`)
-5. The `POST /api/email` route and the `sendEmail` helper in `src/lib/emails/send.ts` will use these values at runtime
-
-## PostHog
-
-1. Create a project at [posthog.com](https://posthog.com)
-2. Add `NEXT_PUBLIC_POSTHOG_KEY` and `NEXT_PUBLIC_POSTHOG_HOST` to `.env`
-3. The app uses a reverse proxy via Next.js rewrites to bypass ad blockers (configured in `next.config.ts`)
+- Confirm `/dashboard` and `/onboarding` are protected.
+- Confirm authenticated users without active org are redirected to `/onboarding`.
+- Confirm cross-org data reads/writes are denied in Convex.

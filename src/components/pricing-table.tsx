@@ -9,6 +9,7 @@ export function PricingTableClient(): React.ReactElement {
 
   return (
     <PricingTable
+      for="organization"
       appearance={{
         baseTheme: resolvedTheme === "dark" ? dark : undefined,
       }}

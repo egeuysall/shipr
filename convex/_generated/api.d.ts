@@ -10,6 +10,7 @@
 
 import type * as chat from "../chat.js";
 import type * as files from "../files.js";
+import type * as lib_auth from "../lib/auth.js";
 import type * as users from "../users.js";
 
 import type {
@@ -21,6 +22,7 @@ import type {
 declare const fullApi: ApiFromModules<{
   chat: typeof chat;
   files: typeof files;
+  "lib/auth": typeof lib_auth;
   users: typeof users;
 }>;
 

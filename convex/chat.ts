@@ -3,31 +3,19 @@ import { mutation, query } from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
 import type { MutationCtx, QueryCtx } from "./_generated/server";
 import { chatHistoryConfig } from "../src/lib/ai/chat-history-config";
+import { ORG_PERMISSIONS } from "../src/lib/auth/rbac";
+import {
+  requireCurrentUser,
+  requireOrgPermission,
+  type OrganizationAuthContext,
+} from "./lib/auth";
 
 type ChatCtx = QueryCtx | MutationCtx;
 const DEFAULT_THREAD_TITLE = "New chat";
 
-async function requireCurrentUser(ctx: ChatCtx) {
-  const identity = await ctx.auth.getUserIdentity();
-  if (!identity) {
-    throw new Error("Unauthorized: authentication required");
-  }
-
-  const user = await ctx.db
-    .query("users")
-    .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
-    .first();
-
-  if (!user) {
-    throw new Error("User not found");
-  }
-
-  return user;
-}
-
-async function requireOwnedThread(
+async function requireOrganizationThread(
   ctx: ChatCtx,
-  userId: Id<"users">,
+  auth: OrganizationAuthContext,
   threadId: Id<"chatThreads">,
 ) {
   const thread = await ctx.db.get(threadId);
@@ -35,8 +23,8 @@ async function requireOwnedThread(
     throw new Error("Chat thread not found");
   }
 
-  if (thread.userId !== userId) {
-    throw new Error("Forbidden: you do not own this chat thread");
+  if (thread.orgId !== auth.orgId) {
+    throw new Error("Forbidden: thread belongs to another organization");
   }
 
   return thread;
@@ -73,11 +61,11 @@ async function enforceThreadMessageBound(
   }
 }
 
-async function enforceThreadCountBound(ctx: MutationCtx, userId: Id<"users">) {
+async function enforceThreadCountBound(ctx: MutationCtx, orgId: string) {
   while (true) {
     const threads = await ctx.db
       .query("chatThreads")
-      .withIndex("by_user_id", (q) => q.eq("userId", userId))
+      .withIndex("by_org_id_last_message", (q) => q.eq("orgId", orgId))
       .order("asc")
       .take(chatHistoryConfig.maxThreadsPerUser + 1);
 
@@ -98,23 +86,24 @@ async function enforceThreadCountBound(ctx: MutationCtx, userId: Id<"users">) {
   }
 }
 
-export const listUserChatThreads = query({
+export const listOrganizationChatThreads = query({
   args: {},
   handler: async (ctx) => {
     if (!chatHistoryConfig.enabled) {
       return [];
     }
 
-    let user;
+    let auth;
     try {
-      user = await requireCurrentUser(ctx);
+      ({ auth } = await requireCurrentUser(ctx));
+      requireOrgPermission(auth, ORG_PERMISSIONS.CHAT_READ);
     } catch {
       return [];
     }
 
     return await ctx.db
       .query("chatThreads")
-      .withIndex("by_user_id_last_message", (q) => q.eq("userId", user._id))
+      .withIndex("by_org_id_last_message", (q) => q.eq("orgId", auth.orgId))
       .order("desc")
       .take(chatHistoryConfig.queryLimit);
   },
@@ -129,15 +118,18 @@ export const createChatThread = mutation({
       return null;
     }
 
-    const user = await requireCurrentUser(ctx);
+    const { auth, user } = await requireCurrentUser(ctx);
+    requireOrgPermission(auth, ORG_PERMISSIONS.CHAT_CREATE);
+
     const now = Date.now();
     const threadId = await ctx.db.insert("chatThreads", {
-      userId: user._id,
+      orgId: auth.orgId,
+      createdByUserId: user._id,
       title: normalizeThreadTitle(args.title ?? DEFAULT_THREAD_TITLE),
       lastMessageAt: now,
     });
 
-    await enforceThreadCountBound(ctx, user._id);
+    await enforceThreadCountBound(ctx, auth.orgId);
     return threadId;
   },
 });
@@ -149,14 +141,15 @@ export const getThreadMessages = query({
       return [];
     }
 
-    let user;
+    let auth;
     try {
-      user = await requireCurrentUser(ctx);
+      ({ auth } = await requireCurrentUser(ctx));
+      requireOrgPermission(auth, ORG_PERMISSIONS.CHAT_READ);
     } catch {
       return [];
     }
 
-    await requireOwnedThread(ctx, user._id, args.threadId);
+    await requireOrganizationThread(ctx, auth, args.threadId);
 
     const messages = await ctx.db
       .query("chatMessages")
@@ -179,8 +172,10 @@ export const saveUserChatMessage = mutation({
       return null;
     }
 
-    const user = await requireCurrentUser(ctx);
-    const thread = await requireOwnedThread(ctx, user._id, args.threadId);
+    const { auth, user } = await requireCurrentUser(ctx);
+    requireOrgPermission(auth, ORG_PERMISSIONS.CHAT_CREATE);
+
+    const thread = await requireOrganizationThread(ctx, auth, args.threadId);
     const content = args.content.trim();
 
     if (!content) {
@@ -194,7 +189,8 @@ export const saveUserChatMessage = mutation({
     }
 
     const insertedId = await ctx.db.insert("chatMessages", {
-      userId: user._id,
+      orgId: auth.orgId,
+      createdByUserId: user._id,
       threadId: args.threadId,
       role: args.role,
       content,

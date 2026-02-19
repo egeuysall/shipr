@@ -1,35 +1,34 @@
 "use client";
 
 import { useAuth } from "@clerk/nextjs";
+import { hasOrganizationPlanPro } from "@/lib/auth/rbac";
 
-/** Possible billing plans for a user. */
+/** Possible billing plans for an active organization. */
 export type Plan = "free" | "pro";
 
 /**
- * Returns the current user's billing plan derived from Clerk session claims.
+ * Returns the active organization's billing plan derived from Clerk session claims.
  *
- * Checks `has({ plan: "pro" })` via Clerk's `useAuth` - no extra API calls needed.
- *
- * @returns Object with `plan`, `isLoading`, `isPro`, and `isFree` flags.
- *
- * @example
- * ```tsx
- * const { isPro, isLoading } = useUserPlan();
- *
- * if (isLoading) return <Skeleton />;
- * if (isPro) return <ProDashboard />;
- * return <FreeDashboard />;
- * ```
+ * In this multi-tenant branch, plan gating is organization-scoped.
  */
 export function useUserPlan(): {
   plan: Plan;
   isLoading: boolean;
   isPro: boolean;
   isFree: boolean;
+  hasActiveOrganization: boolean;
 } {
-  const { has, isLoaded } = useAuth();
+  const { has, isLoaded, orgId } = useAuth();
 
-  const isPro = isLoaded ? (has?.({ plan: "pro" }) ?? false) : false;
+  const hasActiveOrganization = Boolean(orgId);
+  const isPro =
+    isLoaded &&
+    hasActiveOrganization &&
+    hasOrganizationPlanPro({
+      orgId,
+      has,
+    });
+
   const isFree = !isPro;
   const plan: Plan = isPro ? "pro" : "free";
 
@@ -38,5 +37,6 @@ export function useUserPlan(): {
     isLoading: !isLoaded,
     isPro,
     isFree,
+    hasActiveOrganization,
   };
 }

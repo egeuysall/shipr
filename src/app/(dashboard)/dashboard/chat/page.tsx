@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useChat } from "@ai-sdk/react";
-import { UserAvatar } from "@clerk/nextjs";
+import { UserAvatar, useAuth } from "@clerk/nextjs";
 import type { Id } from "@convex/_generated/dataModel";
 import type { UIMessage } from "ai";
 import { useMutation, useQuery } from "convex/react";
@@ -10,6 +10,7 @@ import { api } from "@convex/_generated/api";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { marked } from "marked";
+import { hasOrgPermission, ORG_PERMISSIONS } from "@/lib/auth/rbac";
 import {
   Card,
   CardContent,
@@ -229,15 +230,33 @@ function MessageBubble({
 }
 
 export default function ChatPage(): React.ReactElement {
+  const { has, orgRole, isLoaded } = useAuth();
+  const canReadChat =
+    isLoaded &&
+    hasOrgPermission({
+      orgRole,
+      has,
+      permission: ORG_PERMISSIONS.CHAT_READ,
+    });
+  const canCreateChat =
+    isLoaded &&
+    hasOrgPermission({
+      orgRole,
+      has,
+      permission: ORG_PERMISSIONS.CHAT_CREATE,
+    });
   const [input, setInput] = useState("");
   const [threadSearch, setThreadSearch] = useState("");
   const [activeThreadId, setActiveThreadId] =
     useState<Id<"chatThreads"> | null>(null);
   const [isCreatingThread, setIsCreatingThread] = useState(false);
-  const threads = useQuery(api.chat.listUserChatThreads);
+  const threads = useQuery(
+    api.chat.listOrganizationChatThreads,
+    canReadChat ? {} : "skip",
+  );
   const threadMessages = useQuery(
     api.chat.getThreadMessages,
-    activeThreadId ? { threadId: activeThreadId } : "skip",
+    canReadChat && activeThreadId ? { threadId: activeThreadId } : "skip",
   );
   const saveChatMessage = useMutation(api.chat.saveUserChatMessage);
   const createChatThread = useMutation(api.chat.createChatThread);
@@ -345,6 +364,11 @@ export default function ChatPage(): React.ReactElement {
 
   const handleCreateThread =
     useCallback(async (): Promise<Id<"chatThreads"> | null> => {
+      if (!canCreateChat) {
+        toast.error("You do not have permission to create chat threads.");
+        return null;
+      }
+
       if (isCreatingThread) {
         return null;
       }
@@ -367,7 +391,7 @@ export default function ChatPage(): React.ReactElement {
       } finally {
         setIsCreatingThread(false);
       }
-    }, [createChatThread, isCreatingThread, setMessages]);
+    }, [canCreateChat, createChatThread, isCreatingThread, setMessages]);
 
   return (
     <div className="flex h-full min-h-0 w-full flex-col gap-6">
@@ -388,7 +412,7 @@ export default function ChatPage(): React.ReactElement {
                 variant="outline"
                 size="sm"
                 onClick={() => void handleCreateThread()}
-                disabled={isCreatingThread}
+                disabled={isCreatingThread || !canCreateChat}
               >
                 <HugeiconsIcon
                   icon={CommentAdd01Icon}
@@ -410,7 +434,15 @@ export default function ChatPage(): React.ReactElement {
                 />
               </div>
 
-              {filteredThreads.length ? (
+              {!isLoaded ? (
+                <div className="rounded-md border border-dashed p-4 text-sm text-muted-foreground">
+                  Loading workspace chats...
+                </div>
+              ) : !canReadChat ? (
+                <div className="rounded-md border border-dashed p-4 text-sm text-muted-foreground">
+                  You do not have permission to view workspace chats.
+                </div>
+              ) : filteredThreads.length ? (
                 filteredThreads.map((thread) => (
                   <button
                     key={thread._id}
@@ -489,6 +521,7 @@ export default function ChatPage(): React.ReactElement {
                 className="flex items-center gap-2"
                 onSubmit={(event) => {
                   event.preventDefault();
+                  if (!canCreateChat) return;
                   if (activeThreadId) {
                     submitMessage(activeThreadId, input);
                     return;
@@ -512,7 +545,10 @@ export default function ChatPage(): React.ReactElement {
                   type="submit"
                   size="lg"
                   disabled={
-                    isSending || isCreatingThread || input.trim().length === 0
+                    isSending ||
+                    isCreatingThread ||
+                    input.trim().length === 0 ||
+                    !canCreateChat
                   }
                 >
                   {isSending ? (
@@ -544,6 +580,7 @@ export default function ChatPage(): React.ReactElement {
                     variant="outline"
                     size="sm"
                     onClick={() => {
+                      if (!canCreateChat) return;
                       if (activeThreadId) {
                         submitMessage(activeThreadId, prompt);
                         return;
@@ -556,7 +593,7 @@ export default function ChatPage(): React.ReactElement {
                         }
                       })();
                     }}
-                    disabled={isSending || isCreatingThread}
+                    disabled={isSending || isCreatingThread || !canCreateChat}
                     className="max-w-full"
                   >
                     <span className="truncate">{prompt}</span>

@@ -19,12 +19,15 @@ const cspDirectives = [
   "upgrade-insecure-requests",
 ].join("; ");
 
-const isProtectedRoute = createRouteMatcher(["/dashboard(.*)"]);
+const isDashboardRoute = createRouteMatcher(["/dashboard(.*)"]);
+const isOnboardingRoute = createRouteMatcher(["/onboarding(.*)"]);
+const isProtectedRoute = (req: Parameters<typeof isDashboardRoute>[0]) =>
+  isDashboardRoute(req) || isOnboardingRoute(req);
 const isAuthRoute = createRouteMatcher(["/sign-in(.*)", "/sign-up(.*)"]);
 const isRootRoute = createRouteMatcher(["/"]);
 
 export default clerkMiddleware(async (auth, req) => {
-  const { userId } = await auth();
+  const { userId, orgId } = await auth();
 
   // Redirect authenticated users from auth pages to dashboard
   if (userId && isAuthRoute(req)) {
@@ -38,9 +41,15 @@ export default clerkMiddleware(async (auth, req) => {
     return NextResponse.redirect(dashboardUrl);
   }
 
-  // Protect dashboard routes: unauthenticated users get redirected to sign-in
+  // Protect dashboard + onboarding routes: unauthenticated users get redirected to sign-in
   if (isProtectedRoute(req)) {
     await auth.protect();
+  }
+
+  // Organization-required multi-tenant mode for protected app routes.
+  if (userId && isDashboardRoute(req) && !orgId) {
+    const onboardingUrl = new URL("/onboarding", req.url);
+    return NextResponse.redirect(onboardingUrl);
   }
 
   const response = NextResponse.next();

@@ -2,10 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { UserAvatar, useUser } from "@clerk/nextjs";
+import { OrganizationList, UserAvatar, useAuth, useUser } from "@clerk/nextjs";
+import { dark } from "@clerk/themes";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@convex/_generated/api";
 import { toast } from "sonner";
+import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -49,7 +51,9 @@ const BUILDER_GOALS: {
 
 export default function OnboardingPage() {
   const router = useRouter();
-  const { user } = useUser();
+  const { user, isLoaded: isUserLoaded } = useUser();
+  const { orgId, isLoaded: isAuthLoaded } = useAuth();
+  const { resolvedTheme } = useTheme();
   const onboardingStatus = useQuery(api.users.getOnboardingStatus);
   const updateStep = useMutation(api.users.updateOnboardingStep);
   const completeOnboarding = useMutation(api.users.completeOnboarding);
@@ -317,7 +321,42 @@ export default function OnboardingPage() {
     }
   }
 
-  if (!user || !onboardingStatus) {
+  if (!isUserLoaded || !isAuthLoaded || !user) {
+    return (
+      <div className="flex items-center justify-center min-h-[80vh]">
+        <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" />
+      </div>
+    );
+  }
+
+  if (!orgId) {
+    return (
+      <div className="flex items-center justify-center min-h-[80vh] p-4">
+        <div className="w-full max-w-2xl">
+          <Card>
+            <CardHeader>
+              <CardTitle>Select a workspace</CardTitle>
+              <CardDescription>
+                Choose or create an organization to continue onboarding.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <OrganizationList
+                hidePersonal
+                afterCreateOrganizationUrl="/onboarding"
+                afterSelectOrganizationUrl="/onboarding"
+                appearance={{
+                  baseTheme: resolvedTheme === "dark" ? dark : undefined,
+                }}
+              />
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  if (!onboardingStatus) {
     return (
       <div className="flex items-center justify-center min-h-[80vh]">
         <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" />

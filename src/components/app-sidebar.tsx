@@ -1,7 +1,9 @@
 "use client";
 
 import * as React from "react";
-
+import { OrganizationSwitcher, useOrganization } from "@clerk/nextjs";
+import { dark } from "@clerk/themes";
+import { useTheme } from "next-themes";
 import { NavMain } from "@/components/nav-main";
 import { NavSecondary } from "@/components/nav-secondary";
 import { NavUser } from "@/components/nav-user";
@@ -11,17 +13,15 @@ import {
   SidebarFooter,
   SidebarHeader,
   SidebarMenu,
-  SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
-  DashboardSquare01Icon,
-  User03Icon,
-  FileAttachmentIcon,
   ChatEdit01Icon,
+  DashboardSquare01Icon,
+  FileAttachmentIcon,
+  User03Icon,
 } from "@hugeicons/core-free-icons";
-import { Logo } from "@/components/logo";
 
 const data = {
   navMain: [
@@ -51,6 +51,9 @@ const data = {
 };
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const { organization } = useOrganization();
+  const { resolvedTheme } = useTheme();
+
   return (
     <Sidebar
       collapsible="icon"
@@ -61,17 +64,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton size="lg" render={<a href="/dashboard" />}>
-              <div className="flex aspect-square size-8 items-center justify-center rounded-lg border border-sidebar-border bg-background">
-                <Logo />
-              </div>
-              <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-semibold">Shipr</span>
-                <span className="truncate text-xs text-muted-foreground">
-                  Clone. Build. Ship.
-                </span>
-              </div>
-            </SidebarMenuButton>
+            <OrganizationSwitcher
+              hidePersonal
+              afterCreateOrganizationUrl="/onboarding"
+              afterSelectOrganizationUrl="/onboarding"
+              appearance={{
+                baseTheme: resolvedTheme === "dark" ? dark : undefined,
+              }}
+            />
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>

@@ -4,6 +4,7 @@ import { useAuth, useUser } from "@clerk/nextjs";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@convex/_generated/api";
 import { useEffect } from "react";
+import { hasOrganizationPlanPro } from "@/lib/auth/rbac";
 
 /**
  * Syncs the authenticated Clerk user to the Convex `users` table.
@@ -11,25 +12,26 @@ import { useEffect } from "react";
  * Watches Clerk session data and writes changes to Convex whenever
  * the user's email, name, avatar, or billing plan drifts from what's
  * stored. Runs once on mount and re-syncs on any dependency change.
- *
- * @returns The Clerk `user` object, the matching Convex document (`convexUser`),
- *          and an `isLoaded` flag that is `false` until Clerk finishes loading.
  */
-export function useSyncUser() {
+export function useSyncUser(enabled = true) {
   const { user, isLoaded } = useUser();
-  const { has } = useAuth();
+  const { has, orgId } = useAuth();
   const plan =
-    isLoaded && has ? (has({ plan: "pro" }) ? "pro" : "free") : undefined;
+    isLoaded &&
+    hasOrganizationPlanPro({
+      orgId,
+      has,
+    })
+      ? "pro"
+      : "free";
+
   const createOrUpdateUser = useMutation(api.users.createOrUpdateUser);
-  const existingUser = useQuery(
-    api.users.getUserByClerkId,
-    user?.id ? { clerkId: user.id } : "skip",
-  );
+  const existingUser = useQuery(api.users.getCurrentUser);
 
   useEffect(() => {
-    if (!isLoaded || !user) return;
+    if (!enabled || !isLoaded || !user) return;
 
-    // Only sync if user doesn't exist or data changed
+    // Only sync if user doesn't exist or data changed.
     if (
       !existingUser ||
       existingUser.email !== user.primaryEmailAddress?.emailAddress ||
@@ -38,14 +40,13 @@ export function useSyncUser() {
       existingUser.plan !== plan
     ) {
       createOrUpdateUser({
-        clerkId: user.id,
         email: user.primaryEmailAddress?.emailAddress ?? "",
         name: user.fullName ?? undefined,
         imageUrl: user.imageUrl ?? undefined,
         plan,
       });
     }
-  }, [user, isLoaded, plan, existingUser, createOrUpdateUser]);
+  }, [user, isLoaded, plan, existingUser, createOrUpdateUser, enabled]);
 
   return { user, convexUser: existingUser, isLoaded };
 }

@@ -95,12 +95,18 @@ export async function POST(req: Request): Promise<NextResponse> {
     );
   }
 
-  const { userId } = await auth();
+  const { userId, orgId } = await auth();
 
   if (!userId) {
     return NextResponse.json(
       { error: "Unauthorized" },
       { status: 401, headers: rateLimitHeaders },
+    );
+  }
+  if (!orgId) {
+    return NextResponse.json(
+      { error: "Active organization required" },
+      { status: 403, headers: rateLimitHeaders },
     );
   }
 

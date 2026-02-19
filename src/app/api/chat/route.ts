@@ -8,6 +8,7 @@ import {
   resolveChatToolNames,
   resolveChatTools,
 } from "@/lib/ai/tools/registry";
+import { hasOrgPermission, ORG_PERMISSIONS } from "@/lib/auth/rbac";
 
 export const maxDuration = 30;
 const enabledToolNames = resolveChatToolNames(chatConfig.enabledTools);
@@ -76,14 +77,32 @@ function hasAtLeastOneUserMessage(messages: UIMessage[]): boolean {
 }
 
 export async function POST(req: Request): Promise<Response> {
-  const { userId } = await auth();
+  const { userId, orgId, orgRole, has } = await auth();
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  if (!orgId) {
+    return NextResponse.json(
+      { error: "Active organization required." },
+      { status: 403 },
+    );
+  }
+  if (
+    !hasOrgPermission({
+      orgRole,
+      has,
+      permission: ORG_PERMISSIONS.CHAT_CREATE,
+    })
+  ) {
+    return NextResponse.json(
+      { error: "Forbidden: missing chat permission." },
+      { status: 403 },
+    );
   }
 
   const forwardedFor = req.headers.get("x-forwarded-for") ?? "unknown";
   const ip = forwardedFor.split(",")[0]?.trim() || "unknown";
-  const { success, remaining, reset } = limiter.check(`${userId}:${ip}`);
+  const { success, remaining, reset } = limiter.check(`${userId}:${orgId}:${ip}`);
   const rateLimitHeaders = {
     "X-RateLimit-Remaining": String(remaining),
     "X-RateLimit-Reset": String(reset),
