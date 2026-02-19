@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import { useAuth } from "@clerk/nextjs";
 import { useMutation } from "convex/react";
 import { api } from "@convex/_generated/api";
 import type { Id } from "@convex/_generated/dataModel";
@@ -10,6 +11,8 @@ import {
 } from "@/lib/files/config";
 
 const DEFAULT_ALLOWED_TYPES = new Set<string>(ALLOWED_FILE_MIME_TYPES);
+const ORG_REQUIRED_MESSAGE =
+  "Select or create an organization in onboarding before uploading files.";
 
 interface UploadState {
   isUploading: boolean;
@@ -68,9 +71,27 @@ export function useFileUpload(
     error: null,
     progress: "idle",
   });
+  const { isLoaded: isAuthLoaded, orgId } = useAuth();
 
   const generateUploadUrl = useMutation(api.files.generateUploadUrl);
   const saveFile = useMutation(api.files.saveFile);
+
+  const normalizeUploadError = useCallback((error: unknown): string => {
+    const rawMessage =
+      error instanceof Error ? error.message : "Upload failed unexpectedly";
+
+    if (rawMessage.includes("Forbidden: active organization required")) {
+      return ORG_REQUIRED_MESSAGE;
+    }
+
+    const uncaughtMatch = rawMessage.match(/Uncaught Error:\s*([^\n]+)/);
+    if (uncaughtMatch?.[1]) {
+      return uncaughtMatch[1].trim();
+    }
+
+    const normalized = rawMessage.replace(/\[CONVEX[^\]]+\]\s*/g, "").trim();
+    return normalized || "Upload failed unexpectedly";
+  }, []);
 
   const validateFile = useCallback(
     (file: File): string | null => {
@@ -107,6 +128,27 @@ export function useFileUpload(
           progress: "idle",
         });
         onError?.(validationError);
+        return null;
+      }
+
+      if (isAuthLoaded && !orgId) {
+        setState({
+          isUploading: false,
+          error: ORG_REQUIRED_MESSAGE,
+          progress: "idle",
+        });
+        onError?.(ORG_REQUIRED_MESSAGE);
+        return null;
+      }
+
+      if (!isAuthLoaded) {
+        const loadingMessage = "Authentication is still loading. Please try again.";
+        setState({
+          isUploading: false,
+          error: loadingMessage,
+          progress: "idle",
+        });
+        onError?.(loadingMessage);
         return null;
       }
 
@@ -148,14 +190,22 @@ export function useFileUpload(
 
         return storageId;
       } catch (err) {
-        const message =
-          err instanceof Error ? err.message : "Upload failed unexpectedly";
+        const message = normalizeUploadError(err);
         setState({ isUploading: false, error: message, progress: "idle" });
         onError?.(message);
         return null;
       }
     },
-    [generateUploadUrl, saveFile, validateFile, onSuccess, onError],
+    [
+      generateUploadUrl,
+      saveFile,
+      validateFile,
+      onSuccess,
+      onError,
+      isAuthLoaded,
+      orgId,
+      normalizeUploadError,
+    ],
   );
 
   const uploadMultiple = useCallback(

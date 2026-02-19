@@ -31,6 +31,7 @@ Before deploying:
 3. Configure organization roles (`org:admin`, `org:member`).
 4. (Optional) Configure custom permissions matching `src/lib/auth/rbac.ts`.
 5. If using paid plans, configure Clerk Billing for organizations.
+6. Configure Clerk JWT template `convex` with `org_id`, `org_role`, and `org_permissions` claims.
 
 ## Vercel
 

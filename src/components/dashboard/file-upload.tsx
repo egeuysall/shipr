@@ -28,8 +28,13 @@ export function FileUpload({ onUploadComplete }: FileUploadProps) {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const { upload, uploadMultiple, isUploading, error, progress, reset } =
-    useFileUpload();
+  const { upload, uploadMultiple, isUploading, progress, reset } = useFileUpload(
+    {
+      onError: (message) => {
+        toast.error(message);
+      },
+    },
+  );
 
   const notifyUploadOutcome = useCallback(
     (results: (string | null)[]): void => {
@@ -37,7 +42,6 @@ export function FileUpload({ onUploadComplete }: FileUploadProps) {
       const failedCount = results.length - successCount;
 
       if (successCount === 0) {
-        toast.error("Upload failed");
         return;
       }
 
@@ -190,13 +194,6 @@ export function FileUpload({ onUploadComplete }: FileUploadProps) {
         onChange={handleFileSelect}
         disabled={isUploading}
       />
-
-      {/* Error message */}
-      {error && (
-        <div className="rounded-md border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive dark:border-destructive/30 dark:bg-destructive/5">
-          {error}
-        </div>
-      )}
 
       {/* Selected files preview */}
       {selectedFiles.length > 0 && !isUploading && (

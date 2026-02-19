@@ -39,7 +39,13 @@ Wraps `ClerkProvider` and applies theme-aware Clerk styling.
 
 `src/lib/convex-client-provider.tsx`
 
-Bridges Clerk auth to Convex with `ConvexProviderWithClerk`.
+Bridges Clerk auth to Convex with `ConvexProviderWithAuth` and a custom Clerk token fetcher that:
+
+- requests the `convex` JWT template
+- passes `organizationId` from the active Clerk org
+- refreshes token cache when org context changes
+
+This keeps Convex org claims aligned with Clerk's active organization.
 
 ## User Sync
 
@@ -75,6 +81,16 @@ Bridges Clerk auth to Convex with `ConvexProviderWithClerk`.
 | `CLERK_SECRET_KEY`                  | Clerk secret key            |
 | `NEXT_PUBLIC_CONVEX_URL`            | Convex deployment URL       |
 | `CLERK_JWT_ISSUER_DOMAIN`           | Clerk JWT issuer for Convex |
+
+## Required Clerk JWT Template Claims
+
+The Clerk JWT template named `convex` must include org claims used by Convex guards:
+
+- `org_id`: `{{org.id}}`
+- `org_role`: `{{org.role}}`
+- `org_permissions`: `{{org.permissions}}`
+
+If these claims are missing, Convex will reject org-scoped functions.
 
 ## Security
 

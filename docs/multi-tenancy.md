@@ -98,6 +98,10 @@ Chat threads/messages are workspace-shared.
 3. (Optional) Configure custom permissions matching keys above.
 4. If using Clerk Billing, configure organization plans/features.
 5. Ensure Convex auth issuer is set via `CLERK_JWT_ISSUER_DOMAIN`.
+6. Configure Clerk JWT template `convex` with:
+   - `org_id`: `{{org.id}}`
+   - `org_role`: `{{org.role}}`
+   - `org_permissions`: `{{org.permissions}}`
 
 ## Security Notes
 

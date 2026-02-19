@@ -14,10 +14,10 @@ import { hasOrganizationPlanPro } from "@/lib/auth/rbac";
  * stored. Runs once on mount and re-syncs on any dependency change.
  */
 export function useSyncUser(enabled = true) {
-  const { user, isLoaded } = useUser();
-  const { has, orgId } = useAuth();
+  const { user, isLoaded: isUserLoaded } = useUser();
+  const { has, orgId, userId, isLoaded: isAuthLoaded } = useAuth();
   const plan =
-    isLoaded &&
+    isAuthLoaded &&
     hasOrganizationPlanPro({
       orgId,
       has,
@@ -29,7 +29,9 @@ export function useSyncUser(enabled = true) {
   const existingUser = useQuery(api.users.getCurrentUser);
 
   useEffect(() => {
-    if (!enabled || !isLoaded || !user) return;
+    if (!enabled || !isUserLoaded || !isAuthLoaded || !user || !userId) {
+      return;
+    }
 
     // Only sync if user doesn't exist or data changed.
     if (
@@ -39,14 +41,26 @@ export function useSyncUser(enabled = true) {
       existingUser.imageUrl !== user.imageUrl ||
       existingUser.plan !== plan
     ) {
-      createOrUpdateUser({
+      void createOrUpdateUser({
         email: user.primaryEmailAddress?.emailAddress ?? "",
         name: user.fullName ?? undefined,
         imageUrl: user.imageUrl ?? undefined,
         plan,
+      }).catch((error) => {
+        // Background sync should not crash the UI; auth can still be settling.
+        console.warn("Failed to sync Clerk user to Convex", error);
       });
     }
-  }, [user, isLoaded, plan, existingUser, createOrUpdateUser, enabled]);
+  }, [
+    user,
+    isUserLoaded,
+    isAuthLoaded,
+    userId,
+    plan,
+    existingUser,
+    createOrUpdateUser,
+    enabled,
+  ]);
 
-  return { user, convexUser: existingUser, isLoaded };
+  return { user, convexUser: existingUser, isLoaded: isUserLoaded };
 }

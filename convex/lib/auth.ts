@@ -7,7 +7,9 @@ import {
 
 type ConvexCtx = QueryCtx | MutationCtx;
 
-type AuthIdentity = NonNullable<Awaited<ReturnType<ConvexCtx["auth"]["getUserIdentity"]>>>;
+type AuthIdentity = NonNullable<
+  Awaited<ReturnType<ConvexCtx["auth"]["getUserIdentity"]>>
+>;
 
 export interface OrganizationAuthContext {
   identity: AuthIdentity;
@@ -24,6 +26,13 @@ function getStringClaim(value: unknown): string | null {
 }
 
 function getStringArrayClaim(value: unknown): string[] {
+  if (typeof value === "string" && value.trim().length > 0) {
+    return value
+      .split(/[,\s]+/)
+      .map((item) => item.trim())
+      .filter((item) => item.length > 0);
+  }
+
   if (!Array.isArray(value)) {
     return [];
   }
@@ -31,6 +40,57 @@ function getStringArrayClaim(value: unknown): string[] {
   return value
     .map((item) => (typeof item === "string" ? item.trim() : ""))
     .filter((item) => item.length > 0);
+}
+
+function getObjectClaim(value: unknown): Record<string, unknown> | null {
+  return value !== null && typeof value === "object"
+    ? (value as Record<string, unknown>)
+    : null;
+}
+
+function getClaimFromSources<T>(
+  identityClaims: Record<string, unknown>,
+  parser: (value: unknown) => T,
+  isValid: (value: T) => boolean,
+  keys: string[],
+): T | null {
+  const nestedObjects = Object.values(identityClaims)
+    .map((value) => getObjectClaim(value))
+    .filter((value): value is Record<string, unknown> => value !== null);
+
+  const sources = [identityClaims, ...nestedObjects];
+
+  for (const source of sources) {
+    for (const key of keys) {
+      const parsed = parser(source[key]);
+      if (isValid(parsed)) {
+        return parsed;
+      }
+    }
+  }
+
+  return null;
+}
+
+function collectStringArrayClaims(
+  identityClaims: Record<string, unknown>,
+  keys: string[],
+): string[] {
+  const nestedObjects = Object.values(identityClaims)
+    .map((value) => getObjectClaim(value))
+    .filter((value): value is Record<string, unknown> => value !== null);
+  const sources = [identityClaims, ...nestedObjects];
+
+  const values = new Set<string>();
+  for (const source of sources) {
+    for (const key of keys) {
+      for (const claim of getStringArrayClaim(source[key])) {
+        values.add(claim);
+      }
+    }
+  }
+
+  return [...values];
 }
 
 export async function requireAuthenticatedIdentity(
@@ -51,19 +111,45 @@ export async function requireOrganizationContext(
   const identity = await requireAuthenticatedIdentity(ctx);
   const identityClaims = identity as Record<string, unknown>;
 
-  const orgId =
-    getStringClaim(identityClaims.org_id) ??
-    getStringClaim(identityClaims.orgId);
-  const orgRole =
-    getStringClaim(identityClaims.org_role) ??
-    getStringClaim(identityClaims.orgRole);
-  const orgPermissions = [
-    ...getStringArrayClaim(identityClaims.org_permissions),
-    ...getStringArrayClaim(identityClaims.orgPermissions),
-  ];
+  const orgId = getClaimFromSources(
+    identityClaims,
+    getStringClaim,
+    (value): value is string => Boolean(value),
+    [
+      "org_id",
+      "orgId",
+      "organization_id",
+      "organizationId",
+      "https://clerk.dev/org_id",
+      "https://clerk.dev/organization_id",
+    ],
+  );
+  const orgRole = getClaimFromSources(
+    identityClaims,
+    getStringClaim,
+    (value): value is string => Boolean(value),
+    [
+      "org_role",
+      "orgRole",
+      "organization_role",
+      "organizationRole",
+      "https://clerk.dev/org_role",
+      "https://clerk.dev/organization_role",
+    ],
+  );
+  const orgPermissions = collectStringArrayClaims(identityClaims, [
+    "org_permissions",
+    "orgPermissions",
+    "organization_permissions",
+    "organizationPermissions",
+    "https://clerk.dev/org_permissions",
+    "https://clerk.dev/organization_permissions",
+  ]);
 
   if (!orgId) {
-    throw new Error("Forbidden: active organization required");
+    throw new Error(
+      "Forbidden: active organization required (missing org claim in Convex token)",
+    );
   }
 
   if (!orgRole) {

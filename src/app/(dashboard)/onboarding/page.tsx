@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
+import { Skeleton } from "@/components/ui/skeleton";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Tick02Icon, CheckmarkSquare02Icon } from "@hugeicons/core-free-icons";
 import { Logo } from "@/components/logo";
@@ -321,12 +322,44 @@ export default function OnboardingPage() {
     }
   }
 
-  if (!isUserLoaded || !isAuthLoaded || !user) {
+  function renderOnboardingSkeleton() {
     return (
-      <div className="flex items-center justify-center min-h-[80vh]">
-        <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" />
+      <div className="flex items-center justify-center min-h-[80vh] p-4">
+        <div className="w-full max-w-lg space-y-8">
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-sm text-muted-foreground">
+              <Skeleton className="h-4 w-28" />
+              <Skeleton className="h-4 w-10" />
+            </div>
+            <Skeleton className="h-2 w-full" />
+          </div>
+
+          <Card className="border-none shadow-none">
+            <CardHeader className="text-center space-y-4">
+              <Skeleton className="mx-auto h-16 w-16 rounded-full" />
+              <div className="space-y-2">
+                <Skeleton className="mx-auto h-8 w-56" />
+                <Skeleton className="mx-auto h-5 w-72" />
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <Skeleton className="h-12 w-full rounded-lg" />
+              <Skeleton className="h-12 w-full rounded-lg" />
+              <Skeleton className="h-12 w-full rounded-lg" />
+            </CardContent>
+          </Card>
+
+          <div className="flex items-center justify-between gap-4">
+            <Skeleton className="h-10 w-20" />
+            <Skeleton className="h-10 w-28" />
+          </div>
+        </div>
       </div>
     );
+  }
+
+  if (!isUserLoaded || !isAuthLoaded || !user) {
+    return renderOnboardingSkeleton();
   }
 
   if (!orgId) {
@@ -357,11 +390,7 @@ export default function OnboardingPage() {
   }
 
   if (!onboardingStatus) {
-    return (
-      <div className="flex items-center justify-center min-h-[80vh]">
-        <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" />
-      </div>
-    );
+    return renderOnboardingSkeleton();
   }
 
   return (
