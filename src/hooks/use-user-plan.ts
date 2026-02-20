@@ -1,10 +1,14 @@
 "use client";
 
 import { useAuth } from "@clerk/nextjs";
-import { hasOrganizationPlanPro } from "@/lib/auth/rbac";
+import {
+  resolveOrganizationBillingPlanFromHas,
+  type OrganizationBillingPlan,
+  ORG_BILLING_PLANS,
+} from "@/lib/auth/rbac";
 
 /** Possible billing plans for an active organization. */
-export type Plan = "free" | "pro";
+export type Plan = OrganizationBillingPlan;
 
 /**
  * Returns the active organization's billing plan derived from Clerk session claims.
@@ -14,28 +18,27 @@ export type Plan = "free" | "pro";
 export function useUserPlan(): {
   plan: Plan;
   isLoading: boolean;
-  isPro: boolean;
+  isOrganizationsPlan: boolean;
   isFree: boolean;
   hasActiveOrganization: boolean;
 } {
   const { has, isLoaded, orgId } = useAuth();
 
   const hasActiveOrganization = Boolean(orgId);
-  const isPro =
-    isLoaded &&
-    hasActiveOrganization &&
-    hasOrganizationPlanPro({
-      orgId,
-      has,
-    });
+  const plan = isLoaded
+    ? resolveOrganizationBillingPlanFromHas({
+        orgId,
+        has,
+      })
+    : ORG_BILLING_PLANS.FREE;
+  const isOrganizationsPlan = plan === ORG_BILLING_PLANS.ORGANIZATIONS;
 
-  const isFree = !isPro;
-  const plan: Plan = isPro ? "pro" : "free";
+  const isFree = !isOrganizationsPlan;
 
   return {
     plan,
     isLoading: !isLoaded,
-    isPro,
+    isOrganizationsPlan,
     isFree,
     hasActiveOrganization,
   };

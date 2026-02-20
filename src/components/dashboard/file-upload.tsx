@@ -4,8 +4,8 @@ import { useCallback, useRef, useState } from "react";
 import { useFileUpload } from "@/hooks/use-file-upload";
 import {
   ACCEPTED_FILE_EXTENSIONS,
-  FILE_STORAGE_LIMITS,
   formatFileSize,
+  getFileStorageLimitsForPlan,
 } from "@/lib/files/config";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -14,9 +14,10 @@ import {
   CloudUploadIcon,
   File01Icon,
   Cancel01Icon,
-  Loading03Icon,
 } from "@hugeicons/core-free-icons";
 import { toast } from "sonner";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useUserPlan } from "@/hooks/use-user-plan";
 
 interface FileUploadProps {
   /** Called after a successful upload */
@@ -28,8 +29,12 @@ export function FileUpload({ onUploadComplete }: FileUploadProps) {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const { plan } = useUserPlan();
+  const planLimits = getFileStorageLimitsForPlan(plan);
+
   const { upload, uploadMultiple, isUploading, progress, reset } = useFileUpload(
     {
+      maxSize: planLimits.maxFileSizeBytes,
       onError: (message) => {
         toast.error(message);
       },
@@ -134,7 +139,7 @@ export function FileUpload({ onUploadComplete }: FileUploadProps) {
     [reset],
   );
 
-  const maxFileSizeLabel = formatFileSize(FILE_STORAGE_LIMITS.maxFileSizeBytes);
+  const maxFileSizeLabel = formatFileSize(planLimits.maxFileSizeBytes);
 
   const progressLabel: Record<typeof progress, string> = {
     idle: "",
@@ -160,11 +165,12 @@ export function FileUpload({ onUploadComplete }: FileUploadProps) {
       >
         <CardContent className="flex flex-col items-center justify-center gap-2 py-10">
           {isUploading ? (
-            <HugeiconsIcon
-              icon={Loading03Icon}
-              strokeWidth={2}
-              className="h-10 w-10 animate-spin text-muted-foreground"
-            />
+            <div className="w-full max-w-sm space-y-3">
+              <Skeleton className="mx-auto h-10 w-10 rounded-full" />
+              <Skeleton className="mx-auto h-4 w-52" />
+              <Skeleton className="mx-auto h-3 w-64" />
+              <Skeleton className="h-2 w-full" />
+            </div>
           ) : (
             <HugeiconsIcon
               icon={CloudUploadIcon}
@@ -194,6 +200,26 @@ export function FileUpload({ onUploadComplete }: FileUploadProps) {
         onChange={handleFileSelect}
         disabled={isUploading}
       />
+
+      {isUploading ? (
+        <div className="space-y-2">
+          {Array.from({ length: Math.max(selectedFiles.length, 1) }).map(
+            (_, index) => (
+              <div
+                key={`uploading-skeleton-${index}`}
+                className="flex items-center gap-3 rounded-md border bg-card px-3 py-2"
+              >
+                <Skeleton className="h-4 w-4 shrink-0 rounded" />
+                <div className="min-w-0 flex-1 space-y-1">
+                  <Skeleton className="h-4 w-40" />
+                  <Skeleton className="h-3 w-20" />
+                </div>
+                <Skeleton className="h-8 w-8 rounded" />
+              </div>
+            ),
+          )}
+        </div>
+      ) : null}
 
       {/* Selected files preview */}
       {selectedFiles.length > 0 && !isUploading && (

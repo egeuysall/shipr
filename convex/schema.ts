@@ -2,12 +2,16 @@ import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
 
 export default defineSchema({
+  // NOTE: Multi-tenant branch baseline.
+  // This schema is intentionally not backward compatible with legacy single-tenant
+  // files/chat rows from master. Use a fresh Convex deployment or clear/backfill
+  // legacy rows before rollout.
   users: defineTable({
     clerkId: v.string(),
     email: v.string(),
     name: v.optional(v.string()),
     imageUrl: v.optional(v.string()),
-    plan: v.optional(v.string()), // "free" | "pro": synced from Clerk Billing via useSyncUser
+    plan: v.optional(v.string()), // "free" | "organizations": synced from Clerk Billing via useSyncUser
     onboardingCompleted: v.optional(v.boolean()), // Whether user completed onboarding
     onboardingStep: v.optional(v.string()), // Current onboarding step: "welcome" | "profile" | "preferences" | "complete"
     // NOTE: Do not add a manual createdAt field.

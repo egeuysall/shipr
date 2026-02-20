@@ -72,7 +72,17 @@ Guards are centralized in `convex/lib/auth.ts`.
 Billing checks are organization-scoped.
 
 - `PricingTable` is configured as `<PricingTable for="organization" />`
-- plan checks use Clerk `has({ plan: "pro" })` in active org context
+- plan checks use Clerk `has({ plan: "organizations" })` in active org context
+- Convex entitlement checks derive plan from organization claims in the auth token (`org_plan`-style claim keys).
+- `users.plan` is informational only and is not used for tenant entitlement decisions.
+
+## Deployment Baseline Requirement
+
+This variant is a fresh-baseline multi-tenant branch. It is intentionally not backward compatible with legacy single-tenant `files`/`chat` rows.
+
+- Use a fresh Convex deployment (recommended), or clear legacy `files`, `chatThreads`, and `chatMessages` data before rollout.
+- Deploying this schema over existing single-tenant data can cause schema validation/runtime errors and missing history in org-scoped views.
+- No automatic backfill/migration is provided in this branch by design.
 
 ## Workspace Features
 

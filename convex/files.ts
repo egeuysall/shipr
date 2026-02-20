@@ -4,13 +4,14 @@ import type { Id } from "./_generated/dataModel";
 import type { MutationCtx, QueryCtx } from "./_generated/server";
 import {
   ALLOWED_FILE_MIME_TYPES,
-  FILE_UPLOAD_RATE_LIMITS,
-  FILE_STORAGE_LIMITS,
+  getFileImageUploadRateLimitForPlan,
+  getFileStorageLimitsForPlan,
   isImageMimeType,
 } from "../src/lib/files/config";
 import { ORG_PERMISSIONS } from "../src/lib/auth/rbac";
 import {
   requireCurrentUser,
+  resolveOrganizationBillingPlanForUser,
   requireOrgPermission,
   type OrganizationAuthContext,
 } from "./lib/auth";
@@ -40,9 +41,9 @@ async function enforceImageUploadRateLimit(
   ctx: MutationCtx,
   orgId: string,
   userId: Id<"users">,
+  maxUploadsPerWindow: number,
+  windowMs: number,
 ) {
-  const { maxUploadsPerWindow, windowMs } = FILE_UPLOAD_RATE_LIMITS.image;
-
   // Allow builders to disable by setting a non-positive limit/window in config.
   if (maxUploadsPerWindow <= 0 || windowMs <= 0) {
     return;
@@ -85,6 +86,8 @@ export const generateUploadUrl = mutation({
   handler: async (ctx): Promise<string> => {
     const { auth, user } = await requireCurrentUser(ctx);
     requireOrgPermission(auth, ORG_PERMISSIONS.FILES_CREATE);
+    const orgPlan = resolveOrganizationBillingPlanForUser({ auth });
+    const planLimits = getFileStorageLimitsForPlan(orgPlan);
 
     // Check uploader's file count limit in the active organization.
     const existingFilesByUploader = await ctx.db
@@ -94,9 +97,9 @@ export const generateUploadUrl = mutation({
       )
       .collect();
 
-    if (existingFilesByUploader.length >= FILE_STORAGE_LIMITS.maxFilesPerUser) {
+    if (existingFilesByUploader.length >= planLimits.maxFilesPerUser) {
       throw new Error(
-        `File limit reached: maximum ${FILE_STORAGE_LIMITS.maxFilesPerUser} files per uploader in this workspace`,
+        `File limit reached: maximum ${planLimits.maxFilesPerUser} files per uploader in this workspace for the ${orgPlan} plan`,
       );
     }
 
@@ -118,6 +121,9 @@ export const saveFile = mutation({
   handler: async (ctx, args) => {
     const { auth, user } = await requireCurrentUser(ctx);
     requireOrgPermission(auth, ORG_PERMISSIONS.FILES_CREATE);
+    const orgPlan = resolveOrganizationBillingPlanForUser({ auth });
+    const planLimits = getFileStorageLimitsForPlan(orgPlan);
+    const imageRateLimit = getFileImageUploadRateLimitForPlan(orgPlan);
 
     // SECURITY: Cross-validate against actual stored file metadata
     // This prevents client-side spoofing of file size and MIME type.
@@ -131,10 +137,10 @@ export const saveFile = mutation({
     const actualMimeType = storedFile.contentType ?? args.mimeType;
 
     // Validate actual file size (not the client-provided one).
-    if (actualSize > FILE_STORAGE_LIMITS.maxFileSizeBytes) {
+    if (actualSize > planLimits.maxFileSizeBytes) {
       await ctx.storage.delete(args.storageId);
       throw new Error(
-        `File too large: maximum size is ${FILE_STORAGE_LIMITS.maxFileSizeBytes / (1024 * 1024)}MB`,
+        `File too large: maximum size is ${planLimits.maxFileSizeBytes / (1024 * 1024)}MB for the ${orgPlan} plan`,
       );
     }
 
@@ -149,7 +155,13 @@ export const saveFile = mutation({
     // Rate limit image uploads to reduce abuse; delete blob on reject.
     if (isImageMimeType(actualMimeType)) {
       try {
-        await enforceImageUploadRateLimit(ctx, auth.orgId, user._id);
+        await enforceImageUploadRateLimit(
+          ctx,
+          auth.orgId,
+          user._id,
+          imageRateLimit.maxUploadsPerWindow,
+          imageRateLimit.windowMs,
+        );
       } catch (error) {
         await ctx.storage.delete(args.storageId);
         throw error;

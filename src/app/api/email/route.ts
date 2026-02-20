@@ -2,6 +2,9 @@ import { NextResponse } from "next/server";
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { rateLimit } from "@/lib/rate-limit";
 import { sendEmail, welcomeEmail, planChangedEmail } from "@/lib/emails";
+import { ORG_BILLING_PLANS } from "@/lib/auth/rbac";
+import { normalizeEmailToken } from "@/lib/emails/escape";
+import { hasTrustedOrigin } from "@/lib/security/request";
 
 const limiter = rateLimit({ interval: 60_000, limit: 10 });
 
@@ -21,23 +24,34 @@ interface PlanChangedPayload {
 
 type EmailPayload = WelcomePayload | PlanChangedPayload;
 
+function parsePlanValue(value: string): "free" | "organizations" | null {
+  const normalized = value.trim().toLowerCase();
+  if (normalized === ORG_BILLING_PLANS.FREE) {
+    return ORG_BILLING_PLANS.FREE;
+  }
+  if (normalized === ORG_BILLING_PLANS.ORGANIZATIONS) {
+    return ORG_BILLING_PLANS.ORGANIZATIONS;
+  }
+  return null;
+}
+
 function isValidPayload(body: unknown): body is EmailPayload {
   if (typeof body !== "object" || body === null) return false;
 
   const payload = body as Record<string, unknown>;
 
   if (payload.template === "welcome") {
-    return typeof payload.name === "string" && payload.name.length > 0;
+    return typeof payload.name === "string" && payload.name.trim().length > 0;
   }
 
   if (payload.template === "plan-changed") {
     return (
       typeof payload.name === "string" &&
-      payload.name.length > 0 &&
+      payload.name.trim().length > 0 &&
       typeof payload.previousPlan === "string" &&
-      payload.previousPlan.length > 0 &&
+      payload.previousPlan.trim().length > 0 &&
       typeof payload.newPlan === "string" &&
-      payload.newPlan.length > 0
+      payload.newPlan.trim().length > 0
     );
   }
 
@@ -74,6 +88,10 @@ const SUPPORTED_TEMPLATES: EmailTemplate[] = ["welcome", "plan-changed"];
  * - { template: "plan-changed", name: string, previousPlan: string, newPlan: string }
  */
 export async function POST(req: Request): Promise<NextResponse> {
+  if (!hasTrustedOrigin(req)) {
+    return NextResponse.json({ error: "Invalid request origin" }, { status: 403 });
+  }
+
   const ip = req.headers.get("x-forwarded-for") ?? "unknown";
   const { success: allowed, remaining, reset } = limiter.check(ip);
 
@@ -143,7 +161,47 @@ export async function POST(req: Request): Promise<NextResponse> {
     );
   }
 
-  const { subject, html } = buildEmail(body);
+  const authenticatedDisplayName = normalizeEmailToken(
+    user.fullName ?? user.firstName ?? body.name,
+    80,
+  );
+
+  if (!authenticatedDisplayName) {
+    return NextResponse.json(
+      { error: "Could not resolve display name for email payload" },
+      { status: 400, headers: rateLimitHeaders },
+    );
+  }
+
+  let emailPayload: EmailPayload;
+  if (body.template === "welcome") {
+    emailPayload = {
+      template: "welcome",
+      name: authenticatedDisplayName,
+    };
+  } else {
+    const previousPlan = parsePlanValue(body.previousPlan);
+    const newPlan = parsePlanValue(body.newPlan);
+
+    if (!previousPlan || !newPlan) {
+      return NextResponse.json(
+        {
+          error:
+            "Invalid plan values. Supported plans: free, organizations.",
+        },
+        { status: 400, headers: rateLimitHeaders },
+      );
+    }
+
+    emailPayload = {
+      template: "plan-changed",
+      name: authenticatedDisplayName,
+      previousPlan,
+      newPlan,
+    };
+  }
+
+  const { subject, html } = buildEmail(emailPayload);
   const result = await sendEmail({
     to: user.primaryEmailAddress.emailAddress,
     subject,

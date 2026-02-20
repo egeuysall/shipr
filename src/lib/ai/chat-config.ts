@@ -1,4 +1,8 @@
 import "server-only";
+import {
+  ORG_BILLING_PLANS,
+  type OrganizationBillingPlan,
+} from "@/lib/auth/rbac";
 
 const DEFAULT_CHAT_MODEL = "openai/gpt-4.1-mini";
 const DEFAULT_SYSTEM_PROMPT =
@@ -60,3 +64,55 @@ export const chatConfig = {
     ),
   },
 } as const;
+
+const FREE_CHAT_PLAN_LIMITS = {
+  rateLimit: {
+    intervalMs: readPositiveIntEnv(
+      "AI_CHAT_RATE_LIMIT_WINDOW_MS_FREE",
+      chatConfig.rateLimit.intervalMs,
+    ),
+    maxRequests: readPositiveIntEnv(
+      "AI_CHAT_RATE_LIMIT_MAX_REQUESTS_FREE",
+      chatConfig.rateLimit.maxRequests,
+    ),
+  },
+  lifetimeMessageLimit: {
+    maxMessages: readPositiveIntEnv(
+      "AI_CHAT_LIFETIME_MESSAGE_LIMIT_FREE",
+      chatConfig.lifetimeMessageLimit.maxMessages,
+    ),
+  },
+};
+
+const ORGANIZATIONS_CHAT_PLAN_LIMITS = {
+  rateLimit: {
+    intervalMs: readPositiveIntEnv(
+      "AI_CHAT_RATE_LIMIT_WINDOW_MS_ORGANIZATIONS",
+      FREE_CHAT_PLAN_LIMITS.rateLimit.intervalMs,
+    ),
+    maxRequests: readPositiveIntEnv(
+      "AI_CHAT_RATE_LIMIT_MAX_REQUESTS_ORGANIZATIONS",
+      FREE_CHAT_PLAN_LIMITS.rateLimit.maxRequests,
+    ),
+  },
+  lifetimeMessageLimit: {
+    maxMessages: readPositiveIntEnv(
+      "AI_CHAT_LIFETIME_MESSAGE_LIMIT_ORGANIZATIONS",
+      FREE_CHAT_PLAN_LIMITS.lifetimeMessageLimit.maxMessages,
+    ),
+  },
+};
+
+export function getChatPlanLimitsForPlan(plan: OrganizationBillingPlan): {
+  rateLimit: {
+    intervalMs: number;
+    maxRequests: number;
+  };
+  lifetimeMessageLimit: {
+    maxMessages: number;
+  };
+} {
+  return plan === ORG_BILLING_PLANS.ORGANIZATIONS
+    ? ORGANIZATIONS_CHAT_PLAN_LIMITS
+    : FREE_CHAT_PLAN_LIMITS;
+}

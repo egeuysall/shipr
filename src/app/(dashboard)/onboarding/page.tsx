@@ -2,7 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { OrganizationList, UserAvatar, useAuth, useUser } from "@clerk/nextjs";
+import {
+  CreateOrganization,
+  OrganizationList,
+  UserAvatar,
+  useAuth,
+  useUser,
+} from "@clerk/nextjs";
 import { dark } from "@clerk/themes";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@convex/_generated/api";
@@ -365,25 +371,44 @@ export default function OnboardingPage() {
   if (!orgId) {
     return (
       <div className="flex items-center justify-center min-h-[80vh] p-4">
-        <div className="w-full max-w-2xl">
-          <Card>
-            <CardHeader>
-              <CardTitle>Select a workspace</CardTitle>
-              <CardDescription>
-                Choose or create an organization to continue onboarding.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <OrganizationList
-                hidePersonal
-                afterCreateOrganizationUrl="/onboarding"
-                afterSelectOrganizationUrl="/onboarding"
-                appearance={{
-                  baseTheme: resolvedTheme === "dark" ? dark : undefined,
-                }}
-              />
-            </CardContent>
-          </Card>
+        <div className="w-full max-w-5xl">
+          <div className="grid gap-4 lg:grid-cols-2">
+            <Card>
+              <CardHeader>
+                <CardTitle>Select a workspace</CardTitle>
+                <CardDescription>
+                  Choose an existing organization to continue onboarding.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <OrganizationList
+                  hidePersonal
+                  afterCreateOrganizationUrl="/onboarding"
+                  afterSelectOrganizationUrl="/onboarding"
+                  appearance={{
+                    baseTheme: resolvedTheme === "dark" ? dark : undefined,
+                  }}
+                />
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Create a workspace</CardTitle>
+                <CardDescription>
+                  Create a new organization if your workspace does not exist yet.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="overflow-x-auto">
+                <CreateOrganization
+                  afterCreateOrganizationUrl="/onboarding"
+                  appearance={{
+                    baseTheme: resolvedTheme === "dark" ? dark : undefined,
+                  }}
+                />
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
     );

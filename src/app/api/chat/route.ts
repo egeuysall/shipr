@@ -3,25 +3,46 @@ import { convertToModelMessages, stepCountIs, streamText } from "ai";
 import type { UIMessage } from "ai";
 import { NextResponse } from "next/server";
 import { rateLimit } from "@/lib/rate-limit";
-import { chatConfig } from "@/lib/ai/chat-config";
+import { chatConfig, getChatPlanLimitsForPlan } from "@/lib/ai/chat-config";
 import {
   resolveChatToolNames,
   resolveChatTools,
 } from "@/lib/ai/tools/registry";
-import { hasOrgPermission, ORG_PERMISSIONS } from "@/lib/auth/rbac";
+import {
+  hasOrgPermission,
+  ORG_BILLING_PLANS,
+  ORG_PERMISSIONS,
+  resolveOrganizationBillingPlanFromHas,
+} from "@/lib/auth/rbac";
+import { hasTrustedOrigin } from "@/lib/security/request";
 
 export const maxDuration = 30;
 const enabledToolNames = resolveChatToolNames(chatConfig.enabledTools);
 const tools = resolveChatTools(enabledToolNames);
-const CHAT_USAGE_METADATA_KEY = "chatMessagesSent";
-const CHAT_LIMIT_METADATA_KEY = "chatMessageLimit";
-const CHAT_LAST_MESSAGE_AT_KEY = "chatLastMessageAt";
-const CHAT_FIRST_MESSAGE_AT_KEY = "chatFirstMessageAt";
+const CHAT_USAGE_METADATA_KEY = "chatMessagesSentByOrg";
+const CHAT_LIMIT_METADATA_KEY = "chatMessageLimitByOrg";
+const CHAT_LAST_MESSAGE_AT_KEY = "chatLastMessageAtByOrg";
+const CHAT_FIRST_MESSAGE_AT_KEY = "chatFirstMessageAtByOrg";
 
-const limiter = rateLimit({
-  interval: chatConfig.rateLimit.intervalMs,
-  limit: chatConfig.rateLimit.maxRequests,
-});
+const limiters = new Map<string, ReturnType<typeof rateLimit>>();
+
+function getPlanLimiter(params: {
+  intervalMs: number;
+  maxRequests: number;
+}): ReturnType<typeof rateLimit> {
+  const key = `${params.intervalMs}:${params.maxRequests}`;
+  const existing = limiters.get(key);
+  if (existing) {
+    return existing;
+  }
+
+  const created = rateLimit({
+    interval: params.intervalMs,
+    limit: params.maxRequests,
+  });
+  limiters.set(key, created);
+  return created;
+}
 
 function isValidBody(body: unknown): body is { messages: UIMessage[] } {
   if (typeof body !== "object" || body === null) return false;
@@ -29,21 +50,43 @@ function isValidBody(body: unknown): body is { messages: UIMessage[] } {
   return Array.isArray(payload.messages);
 }
 
-function getUserMessageCount(privateMetadata: unknown): number {
-  if (typeof privateMetadata !== "object" || privateMetadata === null) return 0;
+function getPerOrgMetadataMap(
+  privateMetadata: unknown,
+  key: string,
+): Record<string, unknown> {
+  if (typeof privateMetadata !== "object" || privateMetadata === null) return {};
   const metadata = privateMetadata as Record<string, unknown>;
-  const value = metadata[CHAT_USAGE_METADATA_KEY];
+  const value = metadata[key];
+  if (typeof value !== "object" || value === null) {
+    return {};
+  }
+
+  return value as Record<string, unknown>;
+}
+
+function getUserMessageCount(params: {
+  privateMetadata: unknown;
+  orgId: string;
+}): number {
+  const map = getPerOrgMetadataMap(params.privateMetadata, CHAT_USAGE_METADATA_KEY);
+  const value = map[params.orgId];
   return typeof value === "number" && Number.isFinite(value) ? value : 0;
 }
 
-async function claimLifetimeChatMessage(userId: string): Promise<{
+async function claimLifetimeChatMessage(
+  userId: string,
+  orgId: string,
+  limit: number,
+): Promise<{
   allowed: boolean;
   remaining: number;
 }> {
-  const limit = chatConfig.lifetimeMessageLimit.maxMessages;
   const client = await clerkClient();
   const user = await client.users.getUser(userId);
-  const usedCount = getUserMessageCount(user.privateMetadata);
+  const usedCount = getUserMessageCount({
+    privateMetadata: user.privateMetadata,
+    orgId,
+  });
 
   if (usedCount >= limit) {
     return { allowed: false, remaining: 0 };
@@ -54,15 +97,36 @@ async function claimLifetimeChatMessage(userId: string): Promise<{
     string,
     unknown
   >;
+  const usageByOrg = getPerOrgMetadataMap(privateMetadata, CHAT_USAGE_METADATA_KEY);
+  const limitByOrg = getPerOrgMetadataMap(privateMetadata, CHAT_LIMIT_METADATA_KEY);
+  const firstMessageByOrg = getPerOrgMetadataMap(
+    privateMetadata,
+    CHAT_FIRST_MESSAGE_AT_KEY,
+  );
+  const lastMessageByOrg = getPerOrgMetadataMap(
+    privateMetadata,
+    CHAT_LAST_MESSAGE_AT_KEY,
+  );
 
   await client.users.updateUserMetadata(userId, {
     privateMetadata: {
       ...privateMetadata,
-      [CHAT_USAGE_METADATA_KEY]: usedCount + 1,
-      [CHAT_LIMIT_METADATA_KEY]: limit,
-      [CHAT_FIRST_MESSAGE_AT_KEY]:
-        privateMetadata[CHAT_FIRST_MESSAGE_AT_KEY] ?? nowIso,
-      [CHAT_LAST_MESSAGE_AT_KEY]: nowIso,
+      [CHAT_USAGE_METADATA_KEY]: {
+        ...usageByOrg,
+        [orgId]: usedCount + 1,
+      },
+      [CHAT_LIMIT_METADATA_KEY]: {
+        ...limitByOrg,
+        [orgId]: limit,
+      },
+      [CHAT_FIRST_MESSAGE_AT_KEY]: {
+        ...firstMessageByOrg,
+        [orgId]: firstMessageByOrg[orgId] ?? nowIso,
+      },
+      [CHAT_LAST_MESSAGE_AT_KEY]: {
+        ...lastMessageByOrg,
+        [orgId]: nowIso,
+      },
     },
   });
 
@@ -77,6 +141,10 @@ function hasAtLeastOneUserMessage(messages: UIMessage[]): boolean {
 }
 
 export async function POST(req: Request): Promise<Response> {
+  if (!hasTrustedOrigin(req)) {
+    return NextResponse.json({ error: "Invalid request origin." }, { status: 403 });
+  }
+
   const { userId, orgId, orgRole, has } = await auth();
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -100,6 +168,16 @@ export async function POST(req: Request): Promise<Response> {
     );
   }
 
+  const organizationPlan = resolveOrganizationBillingPlanFromHas({
+    orgId,
+    has,
+  });
+  const chatPlanLimits = getChatPlanLimitsForPlan(organizationPlan);
+  const limiter = getPlanLimiter({
+    intervalMs: chatPlanLimits.rateLimit.intervalMs,
+    maxRequests: chatPlanLimits.rateLimit.maxRequests,
+  });
+
   const forwardedFor = req.headers.get("x-forwarded-for") ?? "unknown";
   const ip = forwardedFor.split(",")[0]?.trim() || "unknown";
   const { success, remaining, reset } = limiter.check(`${userId}:${orgId}:${ip}`);
@@ -108,8 +186,9 @@ export async function POST(req: Request): Promise<Response> {
     "X-RateLimit-Reset": String(reset),
     "X-AI-Model": chatConfig.model,
     "X-AI-Tools": enabledToolNames.join(",") || "none",
+    "X-AI-Organization-Plan": organizationPlan,
     "X-AI-User-Message-Limit": chatConfig.lifetimeMessageLimit.enabled
-      ? String(chatConfig.lifetimeMessageLimit.maxMessages)
+      ? String(chatPlanLimits.lifetimeMessageLimit.maxMessages)
       : "disabled",
   };
 
@@ -162,14 +241,22 @@ export async function POST(req: Request): Promise<Response> {
 
   let remainingMessagesHeader = "unlimited";
   if (chatConfig.lifetimeMessageLimit.enabled) {
-    const messageAllowance = await claimLifetimeChatMessage(userId);
+    const messageAllowance = await claimLifetimeChatMessage(
+      userId,
+      orgId,
+      chatPlanLimits.lifetimeMessageLimit.maxMessages,
+    );
     if (!messageAllowance.allowed) {
-      const lifetimeLimit = chatConfig.lifetimeMessageLimit.maxMessages;
+      const lifetimeLimit = chatPlanLimits.lifetimeMessageLimit.maxMessages;
       const lifetimeLabel = `${lifetimeLimit} lifetime message${lifetimeLimit === 1 ? "" : "s"}`;
+      const planLabel =
+        organizationPlan === ORG_BILLING_PLANS.ORGANIZATIONS
+          ? "organizations"
+          : "free";
       return NextResponse.json(
         {
           code: "MESSAGE_LIMIT_REACHED",
-          error: `Message limit reached. This boilerplate allows only ${lifetimeLabel} per account.`,
+          error: `Message limit reached. The ${planLabel} plan allows only ${lifetimeLabel} per account.`,
         },
         {
           status: 403,

@@ -4,7 +4,10 @@ import { useAuth, useUser } from "@clerk/nextjs";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@convex/_generated/api";
 import { useEffect } from "react";
-import { hasOrganizationPlanPro } from "@/lib/auth/rbac";
+import {
+  resolveOrganizationBillingPlanFromHas,
+  ORG_BILLING_PLANS,
+} from "@/lib/auth/rbac";
 
 /**
  * Syncs the authenticated Clerk user to the Convex `users` table.
@@ -16,14 +19,12 @@ import { hasOrganizationPlanPro } from "@/lib/auth/rbac";
 export function useSyncUser(enabled = true) {
   const { user, isLoaded: isUserLoaded } = useUser();
   const { has, orgId, userId, isLoaded: isAuthLoaded } = useAuth();
-  const plan =
-    isAuthLoaded &&
-    hasOrganizationPlanPro({
-      orgId,
-      has,
-    })
-      ? "pro"
-      : "free";
+  const plan = isAuthLoaded
+    ? resolveOrganizationBillingPlanFromHas({
+        orgId,
+        has,
+      })
+    : ORG_BILLING_PLANS.FREE;
 
   const createOrUpdateUser = useMutation(api.users.createOrUpdateUser);
   const existingUser = useQuery(api.users.getCurrentUser);

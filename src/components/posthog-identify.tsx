@@ -14,7 +14,7 @@ export function PostHogIdentify() {
 
     if (isSignedIn && user && !identifiedRef.current) {
       // Identify user in PostHog
-      const plan = has?.({ plan: "pro" }) ? "pro" : "free";
+      const plan = has?.({ plan: "organizations" }) ? "organizations" : "free";
       posthog.identify(user.id, {
         email: user.primaryEmailAddress?.emailAddress,
         name: user.fullName,

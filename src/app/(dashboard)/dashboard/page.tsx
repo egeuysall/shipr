@@ -22,7 +22,7 @@ import {
 
 export default function DashboardPage() {
   const { user, isLoaded } = useUser();
-  const { isPro, plan, isLoading } = useUserPlan();
+  const { isOrganizationsPlan, plan, isLoading } = useUserPlan();
 
   if (!isLoaded || isLoading) {
     return (
@@ -70,16 +70,16 @@ export default function DashboardPage() {
           <CardContent>
             <div className="flex items-center gap-2">
               <div className="text-2xl font-bold capitalize">{plan}</div>
-              <Badge variant={isPro ? "default" : "outline"}>
-                {isPro ? "Active" : "Limited"}
+              <Badge variant={isOrganizationsPlan ? "default" : "outline"}>
+                {isOrganizationsPlan ? "Active" : "Limited"}
               </Badge>
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              {isPro
-                ? "Enjoying all Pro features"
+              {isOrganizationsPlan
+                ? "Enjoying all Organizations features"
                 : "Upgrade to unlock more features"}
             </p>
-            {!isPro && (
+            {!isOrganizationsPlan && (
               <div className="mt-4">
                 <UpgradeButton />
               </div>
@@ -132,7 +132,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Upgrade Prompt (for free users) */}
-      {!isPro && (
+      {!isOrganizationsPlan && (
         <Card>
           <CardHeader>
             <div className="flex items-center gap-2">
@@ -141,7 +141,7 @@ export default function DashboardPage() {
                 strokeWidth={2}
                 className="h-5 w-5"
               />
-              <CardTitle>Unlock Pro Features</CardTitle>
+              <CardTitle>Unlock Organizations Features</CardTitle>
             </div>
             <CardDescription>
               Get access to unlimited features and priority support

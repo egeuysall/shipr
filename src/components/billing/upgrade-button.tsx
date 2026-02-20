@@ -8,9 +8,9 @@ import { useUserPlan } from "@/hooks/use-user-plan";
 import Link from "next/link";
 
 export function UpgradeButton() {
-  const { isPro, plan } = useUserPlan();
+  const { isOrganizationsPlan, plan } = useUserPlan();
 
-  if (isPro) return null;
+  if (isOrganizationsPlan) return null;
 
   const handleUpgradeClick = () => {
     posthog.capture("upgrade_button_clicked", {
@@ -28,7 +28,7 @@ export function UpgradeButton() {
       onClick={handleUpgradeClick}
     >
       <HugeiconsIcon icon={SparklesIcon} strokeWidth={2} />
-      Upgrade to Pro
+      Upgrade to Organizations
     </Button>
   );
 }

@@ -2,10 +2,14 @@ import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
 import type { MutationCtx, QueryCtx } from "./_generated/server";
-import { chatHistoryConfig } from "../src/lib/ai/chat-history-config";
+import {
+  chatHistoryConfig,
+  getChatHistoryLimitsForPlan,
+} from "../src/lib/ai/chat-history-config";
 import { ORG_PERMISSIONS } from "../src/lib/auth/rbac";
 import {
   requireCurrentUser,
+  resolveOrganizationBillingPlanForUser,
   requireOrgPermission,
   type OrganizationAuthContext,
 } from "./lib/auth";
@@ -42,38 +46,43 @@ function normalizeThreadTitle(raw: string): string {
 async function enforceThreadMessageBound(
   ctx: MutationCtx,
   threadId: Id<"chatThreads">,
+  maxMessagesPerThread: number,
 ) {
   while (true) {
     const messages = await ctx.db
       .query("chatMessages")
       .withIndex("by_thread_id", (q) => q.eq("threadId", threadId))
       .order("asc")
-      .take(chatHistoryConfig.maxMessagesPerThread + 1);
+      .take(maxMessagesPerThread + 1);
 
-    if (messages.length <= chatHistoryConfig.maxMessagesPerThread) {
+    if (messages.length <= maxMessagesPerThread) {
       return;
     }
 
-    const overflow = messages.length - chatHistoryConfig.maxMessagesPerThread;
+    const overflow = messages.length - maxMessagesPerThread;
     await Promise.all(
       messages.slice(0, overflow).map((message) => ctx.db.delete(message._id)),
     );
   }
 }
 
-async function enforceThreadCountBound(ctx: MutationCtx, orgId: string) {
+async function enforceThreadCountBound(
+  ctx: MutationCtx,
+  orgId: string,
+  maxThreadsPerWorkspace: number,
+) {
   while (true) {
     const threads = await ctx.db
       .query("chatThreads")
       .withIndex("by_org_id_last_message", (q) => q.eq("orgId", orgId))
       .order("asc")
-      .take(chatHistoryConfig.maxThreadsPerUser + 1);
+      .take(maxThreadsPerWorkspace + 1);
 
-    if (threads.length <= chatHistoryConfig.maxThreadsPerUser) {
+    if (threads.length <= maxThreadsPerWorkspace) {
       return;
     }
 
-    const overflow = threads.length - chatHistoryConfig.maxThreadsPerUser;
+    const overflow = threads.length - maxThreadsPerWorkspace;
     const threadsToDelete = threads.slice(0, overflow);
     for (const thread of threadsToDelete) {
       const threadMessages = await ctx.db
@@ -120,6 +129,8 @@ export const createChatThread = mutation({
 
     const { auth, user } = await requireCurrentUser(ctx);
     requireOrgPermission(auth, ORG_PERMISSIONS.CHAT_CREATE);
+    const orgPlan = resolveOrganizationBillingPlanForUser({ auth });
+    const historyLimits = getChatHistoryLimitsForPlan(orgPlan);
 
     const now = Date.now();
     const threadId = await ctx.db.insert("chatThreads", {
@@ -129,7 +140,11 @@ export const createChatThread = mutation({
       lastMessageAt: now,
     });
 
-    await enforceThreadCountBound(ctx, auth.orgId);
+    await enforceThreadCountBound(
+      ctx,
+      auth.orgId,
+      historyLimits.maxThreadsPerWorkspace,
+    );
     return threadId;
   },
 });
@@ -174,6 +189,8 @@ export const saveUserChatMessage = mutation({
 
     const { auth, user } = await requireCurrentUser(ctx);
     requireOrgPermission(auth, ORG_PERMISSIONS.CHAT_CREATE);
+    const orgPlan = resolveOrganizationBillingPlanForUser({ auth });
+    const historyLimits = getChatHistoryLimitsForPlan(orgPlan);
 
     const thread = await requireOrganizationThread(ctx, auth, args.threadId);
     const content = args.content.trim();
@@ -202,7 +219,11 @@ export const saveUserChatMessage = mutation({
       await ctx.db.patch(args.threadId, { title: normalizeThreadTitle(content) });
     }
 
-    await enforceThreadMessageBound(ctx, args.threadId);
+    await enforceThreadMessageBound(
+      ctx,
+      args.threadId,
+      historyLimits.maxMessagesPerThread,
+    );
 
     return insertedId;
   },

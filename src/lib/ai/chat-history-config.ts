@@ -1,3 +1,8 @@
+import {
+  ORG_BILLING_PLANS,
+  type OrganizationBillingPlan,
+} from "../auth/rbac";
+
 function readPositiveIntEnv(name: string, fallback: number): number {
   const value = process.env[name];
   if (!value) return fallback;
@@ -32,3 +37,36 @@ export const chatHistoryConfig = {
   ),
   queryLimit: readPositiveIntEnv("AI_CHAT_HISTORY_QUERY_LIMIT", 200),
 } as const;
+
+const FREE_CHAT_HISTORY_LIMITS = {
+  maxMessagesPerThread: readPositiveIntEnv(
+    "AI_CHAT_HIST_MAX_MSGS_THREAD_FREE",
+    chatHistoryConfig.maxMessagesPerThread,
+  ),
+  maxThreadsPerWorkspace: readPositiveIntEnv(
+    "AI_CHAT_HIST_MAX_THREADS_FREE",
+    chatHistoryConfig.maxThreadsPerUser,
+  ),
+};
+
+const ORGANIZATIONS_CHAT_HISTORY_LIMITS = {
+  maxMessagesPerThread: readPositiveIntEnv(
+    "AI_CHAT_HIST_MAX_MSGS_THREAD_ORGS",
+    FREE_CHAT_HISTORY_LIMITS.maxMessagesPerThread,
+  ),
+  maxThreadsPerWorkspace: readPositiveIntEnv(
+    "AI_CHAT_HIST_MAX_THREADS_ORGS",
+    FREE_CHAT_HISTORY_LIMITS.maxThreadsPerWorkspace,
+  ),
+};
+
+export function getChatHistoryLimitsForPlan(
+  plan: OrganizationBillingPlan,
+): {
+  maxMessagesPerThread: number;
+  maxThreadsPerWorkspace: number;
+} {
+  return plan === ORG_BILLING_PLANS.ORGANIZATIONS
+    ? ORGANIZATIONS_CHAT_HISTORY_LIMITS
+    : FREE_CHAT_HISTORY_LIMITS;
+}

@@ -165,7 +165,7 @@ export const PAGE_SEO = {
     keywords: [
       "SaaS pricing",
       "free plan",
-      "pro plan",
+      "organizations plan",
       "subscription pricing",
       "affordable SaaS",
     ],
@@ -243,7 +243,7 @@ export const STRUCTURED_DATA = {
         "@type": "Offer" as const,
         price: "12",
         priceCurrency: "USD",
-        name: "Pro",
+        name: "Organizations",
         priceValidUntil: new Date(
           new Date().getFullYear() + 1,
           11,

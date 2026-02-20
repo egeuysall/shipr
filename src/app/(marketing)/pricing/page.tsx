@@ -19,9 +19,9 @@ const pricingPlans = [
     description: "Core features to get started, no commitment required.",
   },
   {
-    name: "Pro",
+    name: "Organizations",
     price: "12",
-    description: "Advanced tools, priority support, built for serious growth.",
+    description: "Organization-level billing and governance for serious growth.",
   },
 ];
 

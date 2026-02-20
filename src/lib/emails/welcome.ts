@@ -1,4 +1,5 @@
 import { SITE_CONFIG } from "@/lib/constants";
+import { escapeHtml, normalizeEmailToken } from "./escape";
 
 export interface WelcomeEmailProps {
   name: string;
@@ -15,6 +16,11 @@ export function welcomeEmail({ name }: WelcomeEmailProps): {
   html: string;
 } {
   const subject = `Welcome to ${SITE_CONFIG.name}`;
+  const safeSubject = escapeHtml(subject);
+  const safeName = escapeHtml(normalizeEmailToken(name));
+  const safeSiteName = escapeHtml(SITE_CONFIG.name);
+  const safeSiteUrl = escapeHtml(SITE_CONFIG.url);
+  const safeSiteHost = escapeHtml(SITE_CONFIG.url.replace("https://", ""));
 
   const html = `
 <!DOCTYPE html>
@@ -22,7 +28,7 @@ export function welcomeEmail({ name }: WelcomeEmailProps): {
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>${subject}</title>
+  <title>${safeSubject}</title>
 </head>
 <body style="margin:0;padding:0;background-color:#ffffff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;">
   <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#ffffff;">
@@ -34,7 +40,7 @@ export function welcomeEmail({ name }: WelcomeEmailProps): {
           <tr>
             <td style="padding-bottom:32px;">
               <h2 style="margin:0;font-size:20px;font-weight:600;color:#000000;letter-spacing:-0.01em;">
-                ${SITE_CONFIG.name}
+                ${safeSiteName}
               </h2>
             </td>
           </tr>
@@ -53,10 +59,10 @@ export function welcomeEmail({ name }: WelcomeEmailProps): {
                 Welcome
               </h1>
               <p style="margin:0 0 24px 0;font-size:16px;line-height:1.6;color:#000000;">
-                Hi ${name},
+                Hi ${safeName},
               </p>
               <p style="margin:0 0 24px 0;font-size:16px;line-height:1.6;color:#525252;">
-                Thanks for joining ${SITE_CONFIG.name}. Your account is ready and you have access to all Free plan features.
+                Thanks for joining ${safeSiteName}. Your account is ready and you have access to all Free plan features.
               </p>
               <p style="margin:0 0 32px 0;font-size:16px;line-height:1.6;color:#525252;">
                 Get started by exploring your dashboard.
@@ -67,7 +73,7 @@ export function welcomeEmail({ name }: WelcomeEmailProps): {
           <!-- CTA Button -->
           <tr>
             <td style="padding-bottom:32px;">
-              <a href="${SITE_CONFIG.url}/dashboard"
+              <a href="${safeSiteUrl}/dashboard"
                  style="display:inline-block;padding:12px 24px;background-color:#000000;color:#ffffff;text-decoration:none;font-size:14px;font-weight:500;border-radius:6px;letter-spacing:-0.01em;">
                 Go to Dashboard →
               </a>
@@ -85,8 +91,8 @@ export function welcomeEmail({ name }: WelcomeEmailProps): {
           <tr>
             <td>
               <p style="margin:0;font-size:13px;line-height:1.5;color:#737373;">
-                ${SITE_CONFIG.name}<br/>
-                <a href="${SITE_CONFIG.url}" style="color:#737373;text-decoration:none;">${SITE_CONFIG.url.replace("https://", "")}</a>
+                ${safeSiteName}<br/>
+                <a href="${safeSiteUrl}" style="color:#737373;text-decoration:none;">${safeSiteHost}</a>
               </p>
             </td>
           </tr>

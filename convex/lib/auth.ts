@@ -2,6 +2,8 @@ import type { Doc } from "../_generated/dataModel";
 import type { MutationCtx, QueryCtx } from "../_generated/server";
 import {
   hasOrgPermission,
+  normalizeOrganizationBillingPlan,
+  type OrganizationBillingPlan,
   type OrgPermission,
 } from "../../src/lib/auth/rbac";
 
@@ -17,6 +19,7 @@ export interface OrganizationAuthContext {
   orgId: string;
   orgRole: string;
   orgPermissions: string[];
+  orgPlan: OrganizationBillingPlan;
 }
 
 function getStringClaim(value: unknown): string | null {
@@ -145,6 +148,20 @@ export async function requireOrganizationContext(
     "https://clerk.dev/org_permissions",
     "https://clerk.dev/organization_permissions",
   ]);
+  const orgPlanClaim = getClaimFromSources(
+    identityClaims,
+    getStringClaim,
+    (value): value is string => Boolean(value),
+    [
+      "org_plan",
+      "orgPlan",
+      "organization_plan",
+      "organizationPlan",
+      "https://clerk.dev/org_plan",
+      "https://clerk.dev/organization_plan",
+      "plan",
+    ],
+  );
 
   if (!orgId) {
     throw new Error(
@@ -162,6 +179,7 @@ export async function requireOrganizationContext(
     orgId,
     orgRole,
     orgPermissions,
+    orgPlan: normalizeOrganizationBillingPlan(orgPlanClaim),
   };
 }
 
@@ -195,4 +213,11 @@ export async function requireCurrentUser(
   }
 
   return { auth, user };
+}
+
+export function resolveOrganizationBillingPlanForUser(params: {
+  auth: OrganizationAuthContext;
+}): OrganizationBillingPlan {
+  const { auth } = params;
+  return auth.orgPlan;
 }

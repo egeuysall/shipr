@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { OrganizationSwitcher, useOrganization } from "@clerk/nextjs";
+import { OrganizationSwitcher } from "@clerk/nextjs";
 import { dark } from "@clerk/themes";
 import { useTheme } from "next-themes";
 import { NavMain } from "@/components/nav-main";
@@ -51,7 +51,6 @@ const data = {
 };
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const { organization } = useOrganization();
   const { resolvedTheme } = useTheme();
 
   return (

@@ -14,6 +14,18 @@ export const ORG_PERMISSIONS = {
   WORKSPACE_BILLING_MANAGE: "org:workspace_billing:manage",
 } as const;
 
+export const ORG_BILLING_PLAN_KEYS = {
+  ORGANIZATIONS: "organizations",
+} as const;
+
+export const ORG_BILLING_PLANS = {
+  FREE: "free",
+  ORGANIZATIONS: "organizations",
+} as const;
+
+export type OrganizationBillingPlan =
+  (typeof ORG_BILLING_PLANS)[keyof typeof ORG_BILLING_PLANS];
+
 export type OrgRole = (typeof ORG_ROLES)[keyof typeof ORG_ROLES] | string;
 export type OrgPermission =
   (typeof ORG_PERMISSIONS)[keyof typeof ORG_PERMISSIONS];
@@ -87,7 +99,7 @@ export function hasOrgPermission(params: {
   }
 }
 
-export function hasOrganizationPlanPro(params: {
+export function hasOrganizationPlanOrganizations(params: {
   orgId: string | null | undefined;
   has?: PermissionCheckHasFn;
 }): boolean {
@@ -98,8 +110,25 @@ export function hasOrganizationPlanPro(params: {
   }
 
   try {
-    return has({ plan: "pro" });
+    return has({ plan: ORG_BILLING_PLAN_KEYS.ORGANIZATIONS });
   } catch {
     return false;
   }
+}
+
+export function normalizeOrganizationBillingPlan(
+  value: string | null | undefined,
+): OrganizationBillingPlan {
+  return value === ORG_BILLING_PLAN_KEYS.ORGANIZATIONS
+    ? ORG_BILLING_PLANS.ORGANIZATIONS
+    : ORG_BILLING_PLANS.FREE;
+}
+
+export function resolveOrganizationBillingPlanFromHas(params: {
+  orgId: string | null | undefined;
+  has?: PermissionCheckHasFn;
+}): OrganizationBillingPlan {
+  return hasOrganizationPlanOrganizations(params)
+    ? ORG_BILLING_PLANS.ORGANIZATIONS
+    : ORG_BILLING_PLANS.FREE;
 }

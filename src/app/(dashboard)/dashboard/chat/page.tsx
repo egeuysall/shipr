@@ -30,7 +30,7 @@ import {
 
 const SUGGESTED_PROMPTS = [
   "Give me a launch checklist for a SaaS MVP this week.",
-  "Help me define Free vs Pro plan boundaries for B2B SaaS.",
+  "Help me define Free vs Organizations plan boundaries for B2B SaaS.",
   "Draft onboarding copy for a new user dashboard.",
   "What analytics events should this app track first?",
 ];
@@ -428,7 +428,9 @@ export default function ChatPage(): React.ReactElement {
               <div className="mb-2">
                 <Input
                   value={threadSearch}
-                  onChange={(event) => setThreadSearch(event.currentTarget.value)}
+                  onChange={(event) =>
+                    setThreadSearch(event.currentTarget.value)
+                  }
                   placeholder="Search chats..."
                   className="h-9"
                 />
@@ -492,7 +494,7 @@ export default function ChatPage(): React.ReactElement {
           <CardContent className="flex min-h-0 flex-1 flex-col gap-0 p-0">
             <div
               ref={messageContainerRef}
-              className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain bg-gradient-to-b from-background to-muted/20 p-4"
+              className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain bg-gradient-to-b from-background to-muted/20 p-4 sm:p-5"
             >
               {!hasMessages ? (
                 <div className="flex h-full flex-col items-center justify-center rounded-xl border border-dashed bg-background/70 p-6 text-center">

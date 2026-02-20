@@ -34,7 +34,7 @@ const navItems = [
 
 function SidebarContent() {
   const pathname = usePathname();
-  const { plan, isPro } = useUserPlan();
+  const { plan, isOrganizationsPlan } = useUserPlan();
   const { user } = useUser();
 
   return (
@@ -81,7 +81,7 @@ function SidebarContent() {
       <Separator />
 
       {/* Upgrade CTA (if free plan) */}
-      {!isPro && (
+      {!isOrganizationsPlan && (
         <div className="p-4">
           <div className="rounded-lg border bg-gradient-to-br from-primary/10 via-primary/5 to-background p-4 space-y-3">
             <div className="flex items-center gap-2">
@@ -90,7 +90,9 @@ function SidebarContent() {
                 strokeWidth={2}
                 className="h-4 w-4 text-primary"
               />
-              <span className="font-semibold text-sm">Upgrade to Pro</span>
+              <span className="font-semibold text-sm">
+                Upgrade to Organizations
+              </span>
             </div>
             <p className="text-xs text-muted-foreground">
               Unlock unlimited features and priority support
@@ -116,7 +118,7 @@ function SidebarContent() {
             </p>
             <div className="flex items-center gap-2">
               <Badge
-                variant={isPro ? "default" : "secondary"}
+                variant={isOrganizationsPlan ? "default" : "secondary"}
                 className="text-[10px] px-1.5 py-0"
               >
                 {plan}
