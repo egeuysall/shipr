@@ -56,6 +56,13 @@ const BUILDER_GOALS: {
   },
 ];
 
+function toActiveStep(step: Step | string | null | undefined): ActiveStep {
+  if (step === "profile") return "profile";
+  if (step === "preferences") return "preferences";
+  if (step === "complete") return "preferences";
+  return "welcome";
+}
+
 export default function OnboardingPage() {
   const router = useRouter();
   const { user, isLoaded: isUserLoaded } = useUser();
@@ -72,12 +79,30 @@ export default function OnboardingPage() {
 
   useEffect(() => {
     if (!onboardingStatus) return;
-    setCurrentStep((onboardingStatus.currentStep as Step) ?? "welcome");
-  }, [onboardingStatus]);
+    if (onboardingStatus.completed) {
+      router.replace("/dashboard");
+      return;
+    }
 
-  const currentStepIndex = ONBOARDING_STEPS.indexOf(
-    (currentStep === "complete" ? "preferences" : currentStep) as ActiveStep,
-  );
+    const normalizedStep =
+      onboardingStatus.currentStep === "complete"
+        ? "preferences"
+        : toActiveStep(onboardingStatus.currentStep);
+    setCurrentStep(normalizedStep);
+  }, [onboardingStatus, router]);
+
+  useEffect(() => {
+    if (!onboardingStatus) return;
+    if (onboardingStatus.completed) return;
+    if (onboardingStatus.currentStep !== "complete") return;
+
+    // Heal stale onboarding state so future visits remain actionable.
+    void updateStep({ step: "preferences" }).catch((error) => {
+      console.warn("Failed to normalize onboarding step", error);
+    });
+  }, [onboardingStatus, updateStep]);
+
+  const currentStepIndex = ONBOARDING_STEPS.indexOf(toActiveStep(currentStep));
   const progress = ((currentStepIndex + 1) / ONBOARDING_STEPS.length) * 100;
 
   async function handleNext() {
@@ -147,7 +172,7 @@ export default function OnboardingPage() {
         return (
           <Card className="border-none shadow-none">
             <CardHeader className="text-center space-y-4">
-              <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
+              <div className="mx-auto w-16 h-16 flex items-center justify-center">
                 <Logo className="h-8 w-8" />
               </div>
               <div className="space-y-2">
@@ -157,10 +182,10 @@ export default function OnboardingPage() {
                 </CardDescription>
               </div>
             </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-3">
+            <CardContent className="flex flex-col gap-6 items-center">
+              <div className="space-y-3 ">
                 <div className="flex items-center gap-3 text-sm">
-                  <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center">
+                  <div className="h-6 w-6 flex items-center justify-center">
                     <HugeiconsIcon
                       icon={Tick02Icon}
                       strokeWidth={2}
@@ -170,7 +195,7 @@ export default function OnboardingPage() {
                   <span>Set up your profile</span>
                 </div>
                 <div className="flex items-center gap-3 text-sm">
-                  <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center">
+                  <div className="h-6 w-6 flex items-center justify-center">
                     <HugeiconsIcon
                       icon={Tick02Icon}
                       strokeWidth={2}
@@ -180,7 +205,7 @@ export default function OnboardingPage() {
                   <span>Customize your preferences</span>
                 </div>
                 <div className="flex items-center gap-3 text-sm">
-                  <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center">
+                  <div className="h-6 w-6 flex items-center justify-center">
                     <HugeiconsIcon
                       icon={Tick02Icon}
                       strokeWidth={2}
@@ -201,7 +226,7 @@ export default function OnboardingPage() {
         return (
           <Card className="border-none shadow-none">
             <CardHeader className="text-center space-y-4">
-              <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
+              <div className="mx-auto w-16 h-16 flex items-center justify-center">
                 <UserAvatar
                   appearance={{
                     elements: {
@@ -257,12 +282,8 @@ export default function OnboardingPage() {
         return (
           <Card className="border-none shadow-none">
             <CardHeader className="text-center">
-              <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
-                <HugeiconsIcon
-                  icon={CheckmarkSquare02Icon}
-                  strokeWidth={2}
-                  className="h-6 w-6"
-                />
+              <div className="mx-auto w-16 h-16 flex items-center justify-center">
+                <Logo className="h-8 w-8" />
               </div>
               <div className="space-y-2">
                 <CardTitle className="text-2xl">You&apos;re All Set</CardTitle>
@@ -396,7 +417,8 @@ export default function OnboardingPage() {
               <CardHeader>
                 <CardTitle>Create a workspace</CardTitle>
                 <CardDescription>
-                  Create a new organization if your workspace does not exist yet.
+                  Create a new organization if your workspace does not exist
+                  yet.
                 </CardDescription>
               </CardHeader>
               <CardContent className="overflow-x-auto">

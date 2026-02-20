@@ -114,7 +114,6 @@ export const updateOnboardingStep = mutation({
       v.literal("welcome"),
       v.literal("profile"),
       v.literal("preferences"),
-      v.literal("complete"),
     ),
   },
   handler: async (ctx, args) => {
